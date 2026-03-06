@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
+
+    <Product>Speedtest Iperf</Product>
+    <AssemblyTitle>Outil de mesure de débit réseau basé sur Iperf3</AssemblyTitle>
+    <Description>Application permettant de réaliser des tests de débit montant et descendant en utilisant l'outil Iperf3.</Description>
+    <Company>Lucas PIETERS</Company>
+    <Authors>Lucas PIETERS</Authors>
+    <Copyright>Copyright © 2026 Lucas PIETERS</Copyright>
+    
+    <Version>1.0.1</Version>
+    <AssemblyVersion>1.0.1</AssemblyVersion>
+    <FileVersion>1.0.1</FileVersion>
+    
+    <NeutralLanguage>fr-FR</NeutralLanguage>
+  </PropertyGroup>
+
+  <Target Name="ForceCopyResources" AfterTargets="Publish">
+  <ItemGroup>
+    <ResourceFiles Include="$(ProjectDir)Resources\**\*.*" />
+  </ItemGroup>
+  <Copy 
+    SourceFiles="@(ResourceFiles)" 
+    DestinationFolder="$(PublishDir)Resources\%(RecursiveDir)" 
+    SkipUnchangedFiles="false" />
+</Target>
+
+</Project>
