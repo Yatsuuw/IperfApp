@@ -1,6 +1,6 @@
-# 🚀 Speedtest Iperf Pro
+# 🚀 Speedtest Iperf
 
-**Speedtest Iperf Pro** est une application Windows moderne et légère conçue pour mesurer les débits réseau (Upload et Download) en s'appuyant sur le moteur robuste **Iperf3**. 
+**Speedtest Iperf** est une application Windows moderne et légère conçue pour mesurer les débits réseau (Upload et Download) en s'appuyant sur le moteur robuste **Iperf3**. 
 
 L'outil offre une interface fluide et facile à prendre en main, tout en permettant l'exportation des résultats pour un suivi technique précis.
 
