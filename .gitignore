@@ -2,4 +2,6 @@ bin/
 obj/
 .vs/
 .git/
-OutPut/
+Output/
+signature.pfx
+sign.ps1
