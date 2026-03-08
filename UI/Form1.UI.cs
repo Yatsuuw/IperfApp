@@ -51,15 +51,19 @@ public partial class Form1 : Form
     txtChannels = AddModernInput(pnlCard, ref internalTop, "Canaux :", "8", "Flux parallèles", rowX, labelW, inputW, gap);
 
     // Bouton d'Analyse
-    btnStart = new Button {
+    btnStart = new Button
+    {
       Text = "LANCER L'ANALYSE",
-      Top = 270, Width = cardW, Height = 50,
-      BackColor = _colorAccent, ForeColor = Color.White,
+      Top = 270,
+      Width = cardW,
+      Height = 50,
+      BackColor = _colorAccent,
+      ForeColor = Color.White,
       FlatStyle = FlatStyle.Flat,
       Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
-      Cursor = Cursors.Hand
+      Cursor = Cursors.Hand,
+      Left = startX
     };
-    Left = startX;
     btnStart.FlatAppearance.BorderSize = 0;
     btnStart.Click += async (s, e) => await RunFullTest();
 
