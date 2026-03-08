@@ -95,6 +95,9 @@ public partial class Form1 : Form
     _mainToolTip.SetToolTip(btnStart, "Démarre le test de débit montant et descendant.");
     _mainToolTip.SetToolTip(btnExportNew, "Crée un nouveau fichier CSV avec les résultats.");
     _mainToolTip.SetToolTip(btnExportAppend, "Ajoute les résultats à la suite d'un fichier existant.");
+
+    _mainToolTip.SetToolTip(txtServer, "Adresse ou IP du serveur Iperf3 à tester.");
+    _mainToolTip.SetToolTip(txtPort, "Port de communication du serveur (généralement 5201).");
     _mainToolTip.SetToolTip(txtChannels, "Nombre de connexions TCP simultanées (recommandé : 8).");
 
     Controls.AddRange([lblTitle, pnlCard, btnStart, txtLog, btnExportNew, btnExportAppend]);
