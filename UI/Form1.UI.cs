@@ -2,93 +2,86 @@ namespace IperfApp.UI;
 
 public partial class Form1 : Form
 {
-  private void SetupModernUI()
-  {
-    // Fenêtre
-    Text = " Speedtest Iperf";
-    Size = new Size(620, 900);
-    BackColor = _colorBackground;
-    FormBorderStyle = FormBorderStyle.FixedSingle;
-    MaximizeBox = false;
-    StartPosition = FormStartPosition.CenterScreen;
-
-    // Barre menu
-    var ms = new MenuStrip { BackColor = _colorCard, Padding = new Padding(6, 2, 0, 2) };
-    var info = new ToolStripMenuItem("Informations") { ForeColor = _colorText };
-    info.Click += (s, e) => ShowAboutBox();
-    ms.Items.Add(info);
-    MainMenuStrip = ms;
-    Controls.Add(ms);
-
-    // Centrage des éléments
-    int clientW = ClientSize.Width;
-    int labelW = 130;
-    int inputW = 310;
-    int gap = 15;
-    int totalRowWidth = labelW + gap + inputW;
-    int startX = (clientW - totalRowWidth) / 2;
-
-    // Titre
-    var lblTitle = new Label
+    private void SetupModernUI()
     {
-      Text = "DÉBIT RÉSEAU",
-      Font = new Font("Segoe UI Variable Display", 18F, FontStyle.Bold),
-      ForeColor = _colorAccent,
-      Location = new Point(0, 60),
-      Size = new Size(clientW, 45),
-      TextAlign = ContentAlignment.MiddleCenter
-    };
+        // Fenêtre plus compacte et élégante
+        this.Text = " Speedtest Iperf Pro";
+        this.Size = new Size(580, 720); // Réduction de la hauteur (900 -> 720)
+        this.BackColor = _colorBackground;
+        this.FormBorderStyle = FormBorderStyle.FixedSingle;
+        this.MaximizeBox = false;
+        this.StartPosition = FormStartPosition.CenterScreen;
 
-    // Formulaire de configuration
-    var pnlCard = new Panel
-    {
-      BackColor = _colorCard,
-      Size = new Size(totalRowWidth + 60, 220),
-      Location = new Point((clientW - (totalRowWidth + 60)) / 2, 120)
-    };
-    
-    // Bordure
-    pnlCard.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle, Color.FromArgb(225, 230, 235), ButtonBorderStyle.Solid);
+        // Menu épuré
+        var ms = new MenuStrip { BackColor = _colorCard, Padding = new Padding(6, 4, 0, 4) };
+        var info = new ToolStripMenuItem("Informations") { ForeColor = Color.DimGray, Font = new Font("Segoe UI", 9F) };
+        info.Click += (s, e) => ShowAboutBox();
+        ms.Items.Add(info);
+        this.MainMenuStrip = ms;
+        this.Controls.Add(ms);
 
-    // Champs de saisie
-    int internalTop = 30;
-    txtServer = AddModernInput(pnlCard, ref internalTop, "Serveur :", "poi.cubic.iperf.bytel.fr", "Adresse du serveur Iperf", 30, labelW, inputW, gap);
-    txtPort = AddModernInput(pnlCard, ref internalTop, "Port :", "9240", "Port du serveur Iperf (5201 par défaut)", 30, labelW, inputW, gap);
-    txtChannels = AddModernInput(pnlCard, ref internalTop, "Canaux :", "8", "Nombre de connexions (1 par défaut)", 30, labelW, inputW, gap);
+        int clientW = this.ClientSize.Width;
+        int cardW = 460;
+        int startX = (clientW - cardW) / 2;
 
-    // Bouton d'analyse
-    btnStart = new Button
-    {
-      Text = "LANCER L'ANALYSE",
-      Top = 330, Width = totalRowWidth + 60, Height = 65,
-      BackColor = _colorAccent, ForeColor = Color.White,
-      FlatStyle = FlatStyle.Flat,
-      Font = new Font("Segoe UI Semibold", 12F, FontStyle.Bold),
-      Cursor = Cursors.Hand
-    };
-    btnStart.Left = (clientW - btnStart.Width) / 2;
-    btnStart.FlatAppearance.BorderSize = 0;
-    btnStart.Click += async (s, e) => await RunFullTest();
+        // Titre - On réduit l'espace supérieur
+        var lblTitle = new Label {
+            Text = "DÉBIT RÉSEAU",
+            Font = new Font("Segoe UI Variable Display", 16F, FontStyle.Bold),
+            ForeColor = _colorAccent,
+            Location = new Point(0, 45),
+            Size = new Size(clientW, 35),
+            TextAlign = ContentAlignment.MiddleCenter
+        };
 
-    // Console
-    txtLog = new TextBox
-    {
-      Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical,
-      Top = 420, Width = totalRowWidth + 60, Height = 300,
-      BackColor = _colorTerminal, ForeColor = Color.FromArgb(210, 210, 210),
-      Font = new Font("Consolas", 10F),
-      BorderStyle = BorderStyle.None
-    };
-    txtLog.Left = (clientW - txtLog.Width) / 2;
+        // Carte de Configuration - Plus serrée
+        var pnlCard = new Panel {
+            BackColor = _colorCard,
+            Size = new Size(cardW, 160), // Réduction de 220 à 160
+            Location = new Point(startX, 95)
+        };
+        pnlCard.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle, Color.FromArgb(230, 235, 240), ButtonBorderStyle.Solid);
 
-    // Export
-    btnExportNew = CreateGhostButton("Créer un nouveau rapport CSV", 740, txtLog.Left, txtLog.Width);
-    btnExportNew.Click += (s, e) => HandleSave(false);
+        int internalTop = 20;
+        int labelW = 100, inputW = 280, gap = 15;
+        int rowX = (cardW - (labelW + gap + inputW)) / 2;
 
-    btnExportAppend = CreateGhostButton("Ajouter au rapport existant", 795, txtLog.Left, txtLog.Width);
-    btnExportAppend.Click += (s, e) => HandleSave(true);
+        txtServer = AddModernInput(pnlCard, ref internalTop, "Serveur :", "poi.cubic.iperf.bytel.fr", "Adresse Iperf", rowX, labelW, inputW, gap);
+        txtPort = AddModernInput(pnlCard, ref internalTop, "Port :", "9240", "5201", rowX, labelW, inputW, gap);
+        txtChannels = AddModernInput(pnlCard, ref internalTop, "Canaux :", "8", "1", rowX, labelW, inputW, gap);
 
-    // Ajouts contrôles
-    Controls.AddRange([lblTitle, pnlCard, btnStart, txtLog, btnExportNew, btnExportAppend]);
-  }
+        // Bouton d'Analyse - Hauteur réduite pour l'élégance
+        btnStart = new Button {
+            Text = "LANCER L'ANALYSE",
+            Top = 270, Width = cardW, Height = 50,
+            BackColor = _colorAccent, ForeColor = Color.White,
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+            Cursor = Cursors.Hand
+        };
+        btnStart.Left = startX;
+        btnStart.FlatAppearance.BorderSize = 0;
+        btnStart.Click += async (s, e) => await RunFullTest();
+
+        // Console - Plus basse, fond légèrement plus doux
+        txtLog = new TextBox {
+            Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical,
+            Top = 335, Width = cardW, Height = 220, // Hauteur optimisée
+            BackColor = Color.FromArgb(35, 35, 38), 
+            ForeColor = Color.FromArgb(220, 220, 220),
+            Font = new Font("Consolas", 9F),
+            BorderStyle = BorderStyle.None
+        };
+        txtLog.Left = startX;
+
+        // Boutons Export - Alignés sur une seule ligne pour gagner de la place
+        int btnExportW = (cardW / 2) - 5;
+        btnExportNew = CreateGhostButton("Nouveau rapport CSV", 570, startX, btnExportW);
+        btnExportNew.Click += (s, e) => HandleSave(false);
+
+        btnExportAppend = CreateGhostButton("Ajouter au fichier", 570, startX + btnExportW + 10, btnExportW);
+        btnExportAppend.Click += (s, e) => HandleSave(true);
+
+        this.Controls.AddRange([lblTitle, pnlCard, btnStart, txtLog, btnExportNew, btnExportAppend]);
+    }
 }
