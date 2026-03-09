@@ -23,7 +23,7 @@ public partial class Form1 : Form
     cbPresets.DisplayMember = "Name";
     
     // Sélectionner le dernier preset utilisé
-    var selected = _config.Presets.FirstOrDefault(p => p.Name == _config.SelectedPresetName) ?? _config.Presets[0];
+    var selected = _config.Presets.FirstOrDefault(p => p.Name == _config.SelectedPresetName) ?? _config.Presets.FirstOrDefault(p => p.Name == "Défaut") ?? _config.Presets[0];
     cbPresets.SelectedItem = selected;
     ApplyPreset(selected);
       
@@ -47,7 +47,7 @@ public partial class Form1 : Form
     txtChannels.Text = p.Channels;
   }
 
-    // --- LOGIQUE DES TESTS ---
+    // Logique des tests
   private async Task RunFullTest()
   {
     if (string.IsNullOrWhiteSpace(txtServer.Text))
@@ -81,15 +81,15 @@ public partial class Form1 : Form
     btnExportNew.FlatAppearance.BorderColor = btnExportAppend.FlatAppearance.BorderColor = _colorAccent;
   }
 
-  // --- GESTION DES PARAMÈTRES ET EXPORT ---
+  // Gestion des paramètres et de l'export
   private void OpenSettings()
   {
+    // Libérer la mémoire après fermeture
     using var settings = new SettingsForm(this, _config);
-    if (settings.ShowDialog() == DialogResult.OK)
-    {
-      // Recharger la liste si des changements ont eu lieu
-      RefreshPresetList();
-    }
+    // Affichage de la fenêtre
+    settings.ShowDialog();
+    // Rafraîchissement systématique du menu déroulant
+    RefreshPresetList();
   }
 
   private void HandleSave(bool append)
