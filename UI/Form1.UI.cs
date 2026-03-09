@@ -8,7 +8,7 @@ public partial class Form1 : Form
   private void SetupModernUI()
   {
     // Fenêtre (580x720)
-    Text = " Speedtest Iperf Pro";
+    Text = " Speedtest Iperf";
     Size = new Size(580, 720);
     BackColor = _colorBackground;
     FormBorderStyle = FormBorderStyle.FixedSingle;
