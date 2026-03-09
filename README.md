@@ -53,6 +53,7 @@ Exportez le certificat avec une clef privée, sélectionnez AES256-SHA256, écri
 Pour générer l'exécutable (Framework-Independent) :
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+```
 
 Pour compiler et signer l'ensemble de l'application, modifiez le mot de passe dans le script à la ligne 3 pour renseigner le mot de passe que vous avez renseigné à l'exportation de votre certificat. Ensuite, faites :
 ```bash
