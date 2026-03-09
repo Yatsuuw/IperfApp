@@ -18,8 +18,8 @@ L'outil offre une interface fluide et facile à prendre en main, tout en permett
 
 ## 📸 Aperçu
 
-> *[Analyse de connexion](https://github.com/Yatsuuw/IperfApp/blob/master/Images/Analyse.png?raw=true)*
-> *[Gestion des profils](https://github.com/Yatsuuw/IperfApp/blob/master/Images/Profils.png?raw=true)*
+> <img align="center" src='./Images/Analyse.png'>
+> <img align="center" src='./Images/Profils.png'>
 
 ---
 
