@@ -18,7 +18,8 @@ L'outil offre une interface fluide et facile à prendre en main, tout en permett
 
 ## 📸 Aperçu
 
-> *[Ajoute d'une capture d'écran de l'application]*
+> *[https://github.com/Yatsuuw/IperfApp/blob/master/Images/Analyse.png?raw=true]*
+> *[https://github.com/Yatsuuw/IperfApp/blob/master/Images/Profils.png?raw=true]*
 
 ---
 
