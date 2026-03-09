@@ -11,6 +11,14 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 
+; --- MÉTADONNÉES DU FICHIER SETUP.EXE ---
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription=Installateur de {#MyAppName}
+VersionInfoCopyright={#MyAppCopyright}
+VersionInfoProductName={#MyAppName}
+VersionInfoTextVersion={#MyAppVersion}
+
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 
