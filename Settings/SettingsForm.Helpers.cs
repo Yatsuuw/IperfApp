@@ -1,5 +1,4 @@
 using System.Drawing.Drawing2D;
-using IperfApp.Services;
 
 namespace IperfApp.UI;
 
@@ -41,7 +40,7 @@ public partial class SettingsForm : Form
 
   private void SetLockedState(bool locked)
   {
-    // On applique le mode ReadOnly à tous les champs
+    // ReadOnly à tous les champs
     txtName.ReadOnly = txtServer.ReadOnly = txtPort.ReadOnly = txtChannels.ReadOnly = locked;
 
     // Définition des couleurs (Gris si verrouillé, Blanc/Noir si modifiable)

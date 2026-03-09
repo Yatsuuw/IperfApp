@@ -12,7 +12,7 @@ public partial class SettingsForm : Form
     StartPosition = FormStartPosition.CenterParent;
     MaximizeBox = false;
 
-    // --- GAUCHE : NAVIGATION ---
+    // Sélection des profils
     Panel pnlLeft = new() { Dock = DockStyle.Left, Width = 165, BackColor = Color.FromArgb(242, 245, 248), Padding = new Padding(5) };
     Panel pnlBtns = new() { Dock = DockStyle.Top, Height = 40 };
 
@@ -35,7 +35,7 @@ public partial class SettingsForm : Form
 
     pnlLeft.Controls.AddRange([lstPresets, pnlBtns]);
 
-    // --- DROITE : ÉDITION ---
+    // Édition des profils
     Panel pnlRight = new() { Dock = DockStyle.Fill, Padding = new Padding(25, 20, 25, 20) };
     lblHeader.Font = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold);
     lblHeader.Location = new Point(25, 15); lblHeader.AutoSize = true;
