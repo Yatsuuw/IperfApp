@@ -24,7 +24,7 @@ L'outil offre une interface fluide et facile à prendre en main, tout en permett
 ## 🛠️ Installation
 
 1. Téléchargez la dernière version du setup dans l'onglet [Releases](https://github.com/yatsuuw/IperfApp/releases).
-2. Lancez `Speedtest_Iperf_v1.0.2_Setup.exe`.
+2. Lancez `Speedtest_Iperf_v1.0.3_Setup.exe`.
 3. Choisissez l'installation pour "Moi uniquement" (sans admin) ou "Pour tous les utilisateurs".
 
 ---
