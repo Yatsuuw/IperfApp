@@ -44,6 +44,7 @@ $cert = New-SelfSignedCertificate -Type CodeSigning -Subject "CN=SpeedtestIperfD
 ```
 
 Dans le programme "Exécuter" de Windows, écrivez "certmgr.msc", allez dans Personnel, puis dans Certificats, chercher le nom de votre certificat, puis clique droit, Toutes les tâches, et exporter.
+
 Exportez le certificat avec une clef privée, sélectionnez AES256-SHA256, écrivez votre mot de passe, et exporter le certificat à la racine du projet sous le nom de "certificat.pfx" en sélectionnant "Parcourir...".
 
 ### Compilation
