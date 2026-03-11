@@ -18,8 +18,23 @@ public class ConfigData
 
 public static class ConfigService
 {
-  // Le fichier s'appellera "config" sans extension
-  private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config");
+  // Le fichier s'appellera "config.json"
+  private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config.json");
+
+  public static bool IsValidConfig(string json, out ConfigData? data)
+  {
+    data = null;
+    try
+    {
+      data = JsonSerializer.Deserialize<ConfigData>(json);
+      // Vérification : il faut au moins un profil et le nom du profil sélectionné ne doit pas être vide
+      return data != null && data.Presets != null && data.Presets.Count > 0;
+    }
+    catch
+    {
+      return false;
+    }
+  }
 
   public static ConfigData Load()
   {
@@ -27,7 +42,8 @@ public static class ConfigService
     try
     {
       var json = File.ReadAllText(ConfigPath);
-      return JsonSerializer.Deserialize<ConfigData>(json) ?? CreateDefault();
+      if (IsValidConfig(json, out ConfigData? data)) return data!;
+      return CreateDefault();
     }
     catch { return CreateDefault(); }
   }
