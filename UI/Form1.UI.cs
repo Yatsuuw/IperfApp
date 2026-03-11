@@ -24,14 +24,25 @@ public partial class Form1 : Form
       Font = new Font("Segoe UI Semibold", 9F) 
     };
     menuProfils.Click += (s, e) => OpenSettings();
-    
-    var info = new ToolStripMenuItem("Informations") { 
+
+    // Entrée "Configuration
+    var menuConfig = new ToolStripMenuItem("Configuration") { 
       ForeColor = Color.DimGray, 
       Font = new Font("Segoe UI", 9F) 
     };
-    info.Click += (s, e) => ShowAboutBox();
+    ToolStripMenuItem itemImport = new("Importer une configuration...", null, (s, e) => ImportConfiguration());
+    ToolStripMenuItem itemExport = new("Exporter une configuration...", null, (s, e) => ExportConfiguration());
 
-    ms.Items.AddRange([menuProfils, info]);
+    menuConfig.DropDownItems.AddRange([itemImport, itemExport]);
+
+    // Entrée "Informations"
+    var menuInfo = new ToolStripMenuItem("Informations") { 
+      ForeColor = Color.DimGray, 
+      Font = new Font("Segoe UI", 9F) 
+    };
+    menuInfo.Click += (s, e) => ShowAboutBox();
+
+    ms.Items.AddRange([menuProfils, menuConfig, menuInfo]);
     MainMenuStrip = ms;
     Controls.Add(ms);
 
@@ -49,7 +60,7 @@ public partial class Form1 : Form
       TextAlign = ContentAlignment.MiddleCenter
     };
 
-    // Carte de Configuration (Agrandie à 210px pour le menu Profil)
+    // Carte de Configuration
     var pnlCard = new Panel {
       BackColor = _colorCard,
       Size = new Size(cardW, 210),
@@ -61,7 +72,7 @@ public partial class Form1 : Form
     int labelW = 100, inputW = 280, gap = 15;
     int rowX = (cardW - (labelW + gap + inputW)) / 2;
 
-      // --- ZONE PROFIL / SCÉNARIO ---
+      // Zone des profils
     var lblPreset = new Label { 
       Text = "Profil :", Top = internalTop + 3, Left = rowX, Width = labelW, 
       Font = new Font("Segoe UI Semibold", 9F), TextAlign = ContentAlignment.MiddleRight, ForeColor = _colorAccent 
@@ -74,7 +85,7 @@ public partial class Form1 : Form
     pnlCard.Controls.AddRange([lblPreset, cbPresets, btnSettings]);
     internalTop += 45;
 
-    // --- CHAMPS DE SAISIE ---
+    // Champs de saisie
     txtServer = AddModernInput(pnlCard, ref internalTop, "Serveur :", "", "Adresse du serveur", rowX, labelW, inputW, gap);
     txtPort = AddModernInput(pnlCard, ref internalTop, "Port :", "", "5201", rowX, labelW, inputW, gap);
     txtChannels = AddModernInput(pnlCard, ref internalTop, "Canaux :", "", "8", rowX, labelW, inputW, gap);

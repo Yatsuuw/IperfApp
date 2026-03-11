@@ -6,7 +6,7 @@ public partial class Form1 : Form
 {
     private ConfigData _config = null!;
 
-    // --- INITIALISATION DE LA CONFIG ---
+    // Initialisation de la config
     private void LoadConfigIntoUI()
     {
       _config = ConfigService.Load();
@@ -103,6 +103,80 @@ public partial class Form1 : Form
         MessageBox.Show("Export réussi !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
       } catch (Exception ex) {
         MessageBox.Show(ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+  }
+
+  private void ExportConfiguration()
+  {
+    using SaveFileDialog sfd = new();
+    // On propose .json par défaut pour que l'utilisateur puisse l'ouvrir facilement ailleurs
+    sfd.Filter = "Fichier de configuration (*.json)|*.json|Tous les fichiers (*.*)|*.*";
+    sfd.Title = "Exporter la configuration";
+    sfd.FileName = "iperf_config_backup.json";
+
+    if (sfd.ShowDialog() == DialogResult.OK)
+    {
+      try
+      {
+        // Recherche du fichier config
+        string sourceFile = Path.Combine(AppContext.BaseDirectory, "config");
+        
+        if (File.Exists(sourceFile))
+        {
+          File.Copy(sourceFile, sfd.FileName, true);
+          MessageBox.Show("Configuration exportée avec succès !", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        else
+        {
+          // Si le fichier n'existe pas encore, forcer via le service avant d'exporter
+          ConfigService.Save(_config);
+          File.Copy(sourceFile, sfd.FileName, true);
+          MessageBox.Show("Fichier généré et exporté avec succès !", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show($"Erreur lors de l'exportation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+  }
+
+  private void ImportConfiguration()
+  {
+    using OpenFileDialog ofd = new();
+    ofd.Filter = "Fichier de configuration (*.*)|*.*";
+    ofd.Title = "Sélectionner une configuration à importer";
+
+    if (ofd.ShowDialog() == DialogResult.OK)
+    {
+      var result = MessageBox.Show("L'importation remplacera tous vos profils actuels. Continuer ?", 
+                                  "Confirmation d'importation", 
+                                  MessageBoxButtons.YesNo, 
+                                  MessageBoxIcon.Warning);
+
+      if (result == DialogResult.Yes)
+      {
+        try
+        {
+          // La destination est "config" sans extension
+          string destFile = Path.Combine(AppContext.BaseDirectory, "config");
+          
+          // Copie et remplacement
+          File.Copy(ofd.FileName, destFile, true);
+
+          // Rechargement immédiat via ton service
+          _config = ConfigService.Load(); 
+          
+          // Mise à jour de l'UI
+          RefreshPresetList();
+
+          MessageBox.Show("Configuration importée et appliquée avec succès !", "Import", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        catch (Exception ex)
+        {
+          MessageBox.Show($"Erreur lors de l'importation : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
       }
     }
   }
