@@ -7,7 +7,7 @@ public partial class Form1 : Form
   // Variables privées
   private TextBox txtServer = null!, txtPort = null!, txtChannels = null!, txtLog = null!;
   private Button btnStart = null!, btnExportNew = null!, btnExportAppend = null!;
-  private ToolTip _mainToolTip = new();
+  private readonly ToolTip _mainToolTip = new();
   private double _lastUp = 0;
   private double _lastDown = 0;
   private readonly IperfEngine _engine = new();
