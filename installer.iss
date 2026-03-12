@@ -5,22 +5,22 @@
 #define MyAppExeName "IperfApp.exe"
 
 [Setup]
-; AppId unique pour identifier le programme dans le registre
+; --- IDENTIFIANTS ET MÉTADONNÉES ---
 AppId={{A1B2C3D4-E5F6-4G7H-8I9J-K1L2M3N4O5P6}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-
-; --- MÉTADONNÉES DU FICHIER SETUP.EXE ---
+AppCopyright={#MyAppCopyright}
 VersionInfoVersion={#MyAppVersion}
 VersionInfoCompany={#MyAppPublisher}
-VersionInfoDescription=Installateur de {#MyAppName}
+VersionInfoDescription=Installateur pour {#MyAppName}
 VersionInfoCopyright={#MyAppCopyright}
 VersionInfoProductName={#MyAppName}
-VersionInfoTextVersion={#MyAppVersion}
 
+; --- 1. BI-INSTALLATION (Choix Local ou Administrateur) ---
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
+ArchitecturesInstallIn64BitMode=x64compatible
 
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
@@ -37,9 +37,15 @@ WizardStyle=modern
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 
 [Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+; --- 2. CASE ICÔNE SUR LE BUREAU PRÉCOCHÉE ---
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+
+[Dirs]
+; --- FIX CRITIQUE : Donne les droits de modification aux utilisateurs sur le dossier d'installation ---
+Name: "{app}"; Permissions: users-modify
 
 [Files]
+; --- 3. INSTALLATION PAR DESSUS ---
 Source: "bin\Release\net10.0-windows\win-x64\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion restartreplace
 Source: "bin\Release\net10.0-windows\win-x64\publish\Resources\*"; DestDir: "{app}\Resources"; Flags: ignoreversion recursesubdirs createallsubdirs
 
@@ -48,55 +54,8 @@ Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [UninstallDelete]
-Type: files; Name: "{app}\*.csv"
-Type: filesandordirs; Name: "{app}\Resources"
+; --- 4. DÉSINSTALLATION TOTALE (config inclus) ---
 Type: filesandordirs; Name: "{app}"
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-/////////////////////////////////////////////////////////////////////
-// DÉTECTION ET DÉSINSTALLATION PRÉALABLE                          //
-/////////////////////////////////////////////////////////////////////
-
-function GetUninstallString(): String;
-var
-  sUninstPath: String;
-  sUninstString: String;
-begin
-  // Chemin de la clé de désinstallation Inno Setup
-  sUninstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#emit SetupSetting("AppId")}_is1');
-  sUninstString := '';
-  
-  // Test dans HKLM (Machine) puis HKCU (Utilisateur actuel)
-  if not RegQueryStringValue(HKLM, sUninstPath, 'UninstallString', sUninstString) then
-    RegQueryStringValue(HKCU, sUninstPath, 'UninstallString', sUninstString);
-    
-  Result := sUninstString;
-end;
-
-function InitializeSetup(): Boolean;
-var
-  V: Integer;
-  sUninstString: String;
-begin
-  Result := True; // Par défaut, on continue l'installation
-  sUninstString := GetUninstallString();
-
-  if sUninstString <> '' then
-  begin
-    // Message personnalisé demandé
-    if MsgBox('Une version de {#MyAppName} est déjà installée sur votre ordinateur.' #13#10 #13#10 'Souhaitez-vous désinstaller l''application ?', mbConfirmation, MB_YESNO) = IDYES then
-    begin
-      sUninstString := RemoveQuotes(sUninstString);
-      // Exécution silencieuse du désinstalleur existant
-      if Exec(sUninstString, '/SILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_SHOW, ewWaitUntilTerminated, V) then
-      begin
-        Sleep(1000); // Temps de latence pour la libération des fichiers par Windows
-      end;
-    end;
-    // Note : On ne retourne pas 'False' ici car l'installeur actuel doit 
-    // continuer son exécution pour installer la nouvelle version.
-  end;
-end;
