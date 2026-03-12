@@ -2,7 +2,6 @@ namespace IperfApp.UI;
 
 public partial class Form1 : Form
 {
-  private ComboBox cbPresets = null!;
   private readonly Button btnSettings = null!;
 
   private void SetupModernUI()
