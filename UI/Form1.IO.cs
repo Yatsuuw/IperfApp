@@ -19,6 +19,14 @@ public partial class Form1
   {
     using FileDialog fd = append ? new OpenFileDialog() : new SaveFileDialog();
     fd.Filter = "Fichier CSV|*.csv";
+    
+    // Ajouter un nom prérempli pour les nouveaux rapports
+    if (!append && fd is SaveFileDialog sfd)
+    {
+      string fileName = $"Debit_Reseau_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv";
+      sfd.FileName = fileName;
+    }
+    
     if (fd.ShowDialog() == DialogResult.OK)
     {
       try {
