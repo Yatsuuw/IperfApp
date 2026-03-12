@@ -1,24 +1,9 @@
 using System.Text.Json;
 
-namespace IperfApp.Services; // Vérifie bien que ce namespace est le même partout
-
-public class Preset
-{
-  public string Name { get; set; } = "";
-  public string Server { get; set; } = "";
-  public string Port { get; set; } = "5201";
-  public string Channels { get; set; } = "8";
-}
-
-public class ConfigData
-{
-  public string SelectedPresetName { get; set; } = "Défaut";
-  public List<Preset> Presets { get; set; } = new();
-}
+namespace IperfApp.Services;
 
 public static class ConfigService
 {
-  // Le fichier s'appellera "config.json"
   private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config.json");
 
   public static bool IsValidConfig(string json, out ConfigData? data, out string errorMessage)
@@ -27,11 +12,10 @@ public static class ConfigService
     errorMessage = "";
     try
     {
-      // Analyse structurelle
       using JsonDocument doc = JsonDocument.Parse(json);
       JsonElement root = doc.RootElement;
 
-      // Vérification racine : Attendu : 2 champs : SelectedPresetName et Presets
+      // Vérification de la racine
       int rootFieldCount = 0;
       foreach (var prop in root.EnumerateObject()) rootFieldCount++;
 
@@ -45,33 +29,33 @@ public static class ConfigService
         return false;
       }
 
-      // Vérification des profils
+      // Vérification du format de la liste
       if (presetsElem.ValueKind != JsonValueKind.Array) {
         errorMessage = "Le champ 'Presets' doit être une liste (Array).";
         return false;
       }
 
+      // Vérification de chaque profil
       foreach (JsonElement preset in presetsElem.EnumerateArray())
       {
         int fieldCount = 0;
         foreach (var prop in preset.EnumerateObject()) fieldCount++;
 
-        // Attendu : 4 champs par profil : Name, Server, Port, Channels
         if (fieldCount != 4) {
           errorMessage = "Un profil contient un nombre de champs incorrect (attendu : 4).";
           return false;
         }
 
-        string[] expectedFields = ["Name", "Server", "Port", "Channels"];
+        string[] expectedFields = { "Name", "Server", "Port", "Channels" };
         foreach (var field in expectedFields) {
           if (!preset.TryGetProperty(field, out _)) {
-            errorMessage = $"Champ manquant ou mal nommé : '{field}' attendu dans le profil.";
+            errorMessage = $"Champ manquant : '{field}' attendu dans le profil.";
             return false;
           }
         }
       }
 
-      // Désérialisation et validation des types/valeurs
+      // Désérialisation et validation métier
       data = JsonSerializer.Deserialize<ConfigData>(json);
       if (data == null) return false;
 
@@ -102,7 +86,6 @@ public static class ConfigService
     try
     {
       var json = File.ReadAllText(ConfigPath);
-      // On passe 'out _' car il n'y a pas besoin du message d'erreur au démarrage
       if (IsValidConfig(json, out ConfigData? data, out _)) return data!;
       return CreateDefault();
     }
