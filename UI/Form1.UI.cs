@@ -86,8 +86,8 @@ public partial class Form1 : Form
 
     // Champs de saisie
     txtServer = AddModernInput(pnlCard, ref internalTop, "Serveur :", "", "Adresse du serveur", rowX, labelW, inputW, gap);
-    txtPort = AddModernInput(pnlCard, ref internalTop, "Port :", "", "5201", rowX, labelW, inputW, gap);
-    txtChannels = AddModernInput(pnlCard, ref internalTop, "Canaux :", "", "8", rowX, labelW, inputW, gap);
+    txtPort = AddNumericInput(pnlCard, ref internalTop, "Port :", "", "5201", rowX, labelW, inputW, gap);
+    txtChannels = AddNumericInput(pnlCard, ref internalTop, "Canaux :", "", "8", rowX, labelW, inputW, gap);
 
     // Bouton d'Analyse (Recentré avec btnStart.Left)
     btnStart = new Button

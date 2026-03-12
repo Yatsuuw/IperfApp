@@ -16,13 +16,28 @@ public partial class SettingsForm : Form
     top += 55;
   }
 
+  private static void AddNumericField(Panel p, string label, TextBox tb, ref int top)
+  {
+    AddInputField(p, label, tb, ref top);
+
+    // Validation : accepter seulement les chiffres
+    tb.KeyPress += (s, e) =>
+    {
+      // Accepter les chiffres et les touches de contrôle (backspace, suppression, etc)
+      if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+      {
+        e.Handled = true;
+      }
+    };
+  }
+
   private void DrawListItem(object? sender, DrawItemEventArgs e)
   {
     if (e.Index < 0) return;
     e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
     bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
     e.Graphics.FillRectangle(new SolidBrush(isSelected ? Color.FromArgb(0, 120, 215) : lstPresets.BackColor), e.Bounds);
-      
+
     if (!isSelected) {
       using Pen p = new(Color.FromArgb(225, 228, 232), 1);
       e.Graphics.DrawLine(p, e.Bounds.Left + 10, e.Bounds.Bottom - 1, e.Bounds.Right - 10, e.Bounds.Bottom - 1);
@@ -51,8 +66,8 @@ public partial class SettingsForm : Form
     var fields = new[] { txtName, txtServer, txtPort, txtChannels };
     foreach (var field in fields)
     {
-        field.BackColor = bg;
-        field.ForeColor = fg;
+      field.BackColor = bg;
+      field.ForeColor = fg;
     }
   }
 

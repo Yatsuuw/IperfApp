@@ -22,6 +22,24 @@ public partial class Form1 : Form
     return txt;
   }
 
+  // Méthode pour ajouter un champ numérique (accepte seulement des chiffres)
+  private static TextBox AddNumericInput(Panel p, ref int top, string lblT, string text, string placeholder, int x, int lW, int iW, int g)
+  {
+    var txt = AddModernInput(p, ref top, lblT, text, placeholder, x, lW, iW, g);
+
+    // Validation : accepter seulement les chiffres
+    txt.KeyPress += (s, e) =>
+    {
+      // Accepter les chiffres et les touches de contrôle (backspace, etc)
+      if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+      {
+        e.Handled = true;
+      }
+    };
+
+    return txt;
+  }
+
   private Button CreateGhostButton(string txt, int t, int x, int w)
   {
     var b = new Button

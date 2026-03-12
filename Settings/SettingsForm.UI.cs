@@ -43,8 +43,8 @@ public partial class SettingsForm : Form
     int top = 65;
     AddInputField(pnlRight, "NOM DU SCÉNARIO", txtName, ref top);
     AddInputField(pnlRight, "ADRESSE SERVEUR", txtServer, ref top);
-    AddInputField(pnlRight, "PORT", txtPort, ref top);
-    AddInputField(pnlRight, "CANAUX", txtChannels, ref top);
+    AddNumericField(pnlRight, "PORT", txtPort, ref top);
+    AddNumericField(pnlRight, "CANAUX", txtChannels, ref top);
 
     btnSave.Text = "ENREGISTRER";
     btnSave.Dock = DockStyle.Bottom; btnSave.Height = 40;
