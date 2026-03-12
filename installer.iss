@@ -1,5 +1,5 @@
 #define MyAppName "Speedtest Iperf"
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.4"
 #define MyAppPublisher "Lucas PIETERS"
 #define MyAppCopyright "Copyright © 2026 Lucas PIETERS"
 #define MyAppExeName "IperfApp.exe"
