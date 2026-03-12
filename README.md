@@ -13,6 +13,7 @@ L'outil offre une interface fluide et facile à prendre en main, tout en permett
 * **Export CSV** : Sauvegarde des résultats (Date, Heure, Mbps) dans un fichier nouveau ou existant.
 * **Installation Flexible** : Installateur "Dual-Mode" (installation avec ou sans droits d'administrateur).
 * **Gestion des profils** : Créez différents profils persistants pour analyser l'état de votre réseau.
+* **Importation et exportation** : Importez et exportez vos profils pour les tests de débits.
 
 ---
 
