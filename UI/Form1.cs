@@ -25,7 +25,7 @@ public partial class Form1 : Form
   public Form1()
   {
     InitializeComponent();
-    
+
     string iconPath = Path.Combine(AppContext.BaseDirectory, "Resources", "favicon.ico");
     if (File.Exists(iconPath)) Icon = new Icon(iconPath);
 
