@@ -19,7 +19,7 @@ public partial class Form1
   {
     using FileDialog fd = append ? new OpenFileDialog() : new SaveFileDialog();
     fd.Filter = "Fichier CSV|*.csv";
-    
+
     // Ajouter un nom prérempli pour les nouveaux rapports
     if (!append && fd is SaveFileDialog sfd)
     {
@@ -55,13 +55,13 @@ public partial class Form1
         {
           var result = MessageBox.Show("Le fichier est valide. Remplacer la configuration actuelle ?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
-            if (result == DialogResult.Yes)
-            {
-              ConfigService.Save(validatedData!); // Sauvegarde en tant que config.json
-              _config = validatedData!;
-              RefreshPresetList();
-              MessageBox.Show("Configuration importée et appliquée !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
+          if (result == DialogResult.Yes)
+          {
+            ConfigService.Save(validatedData!); // Sauvegarde en tant que config.json
+            _config = validatedData!;
+            RefreshPresetList();
+            MessageBox.Show("Configuration importée et appliquée !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
+          }
         }
         else
         {
