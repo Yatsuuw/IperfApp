@@ -3,7 +3,7 @@ $pfxPath = "signature.pfx"
 $password = 'Mot de passe'
 $publishFolder = "bin\Release\net10.0-windows\win-x64\publish"
 $exePath = "$publishFolder\IperfApp.exe"
-$setupPath = "Output\Speedtest_Iperf_v1.0.3_Setup.exe"
+$setupPath = "Output\Speedtest_Iperf_v1.0.4_Setup.exe"
 $timestamp = "http://timestamp.digicert.com"
 
 # Si erreur, script s'arrête
