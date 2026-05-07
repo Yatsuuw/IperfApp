@@ -2,9 +2,13 @@ using IperfApp.UI.Constants;
 
 namespace IperfApp.UI.Forms;
 
-/// <summary>Boîte de dialogue "Informations" de l'application.</summary>
+/// <summary>Boîte de dialogue « Informations » de l'application.</summary>
 public class AboutForm : Form
 {
+    // Conservées en champ pour être libérées dans Dispose(bool).
+    private readonly Font _fontTitle;
+    private readonly Font _fontBody;
+
     public AboutForm(Icon? parentIcon)
     {
         Text            = " Informations";
@@ -16,10 +20,13 @@ public class AboutForm : Form
         BackColor       = AppColors.Card;
         if (parentIcon is not null) Icon = parentIcon;
 
+        _fontTitle = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold);
+        _fontBody  = new Font("Segoe UI", 9F);
+
         var lblTitle = new Label
         {
             Text      = "IperfApp",
-            Font      = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold),
+            Font      = _fontTitle,
             ForeColor = AppColors.Accent,
             Location  = new Point(20, 20),
             AutoSize  = true
@@ -28,7 +35,7 @@ public class AboutForm : Form
         var lblVersion = new Label
         {
             Text      = $"Version {Application.ProductVersion}",
-            Font      = new Font("Segoe UI", 9F),
+            Font      = _fontBody,
             ForeColor = AppColors.TextMuted,
             Location  = new Point(20, 55),
             AutoSize  = true
@@ -37,15 +44,17 @@ public class AboutForm : Form
         var lblDesc = new Label
         {
             Text      = "Outil de mesure de débit réseau basé sur iperf3.",
-            Font      = new Font("Segoe UI", 9F),
+            Font      = _fontBody,
             ForeColor = AppColors.TextMuted,
             Location  = new Point(20, 80),
             AutoSize  = true
         };
 
+        var fontBtn = new Font("Segoe UI", 9F);
         var btnClose = new Button
         {
             Text         = "Fermer",
+            Font         = fontBtn,
             DialogResult = DialogResult.OK,
             Location     = new Point(240, 145),
             Size         = new Size(90, 30),
@@ -58,5 +67,17 @@ public class AboutForm : Form
 
         Controls.AddRange([lblTitle, lblVersion, lblDesc, btnClose]);
         AcceptButton = btnClose;
+    }
+
+    /// <inheritdoc/>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _fontTitle.Dispose();
+            _fontBody.Dispose();
+            // btnClose.Font est la même instance que _fontBody — pas de double dispose.
+        }
+        base.Dispose(disposing);
     }
 }

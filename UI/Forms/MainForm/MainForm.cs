@@ -94,6 +94,15 @@ public partial class MainForm : Form
         {
             _testCts?.Dispose();
             _mainToolTip.Dispose();
+            _engine.Dispose();
+
+            // Libère les handles GDI Font créés inline dans BuildActionsArea
+            // et BuildConfigCard (non gérés automatiquement par WinForms).
+            btnStart?.Font?.Dispose();
+            btnCancel?.Font?.Dispose();
+            txtLog?.Font?.Dispose();
+            cbPresets?.Font?.Dispose();
+            cbIpVersion?.Font?.Dispose();
         }
         base.Dispose(disposing);
     }
