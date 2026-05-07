@@ -1,6 +1,6 @@
 using IperfApp.UI.Constants;
 
-namespace IperfApp.UI.Forms.AboutForm;
+namespace IperfApp.UI.Forms;
 
 /// <summary>Boîte de dialogue "Informations" de l'application.</summary>
 public class AboutForm : Form
