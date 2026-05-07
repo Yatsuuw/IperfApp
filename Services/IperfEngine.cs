@@ -4,13 +4,19 @@ using IperfApp.Models;
 
 namespace IperfApp.Services;
 
-/// <summary>Orchestre les exécutions d'iperf3.exe et retourne le débit mesuré en Mbps.</summary>
-public class IperfEngine
+/// <summary>
+/// Orchestre les exécutions d'iperf3.exe et retourne le débit mesuré en Mbps.
+/// Implémente <see cref="IDisposable"/> pour permettre la libération propre
+/// des abonnements à <see cref="OnLogReceived"/>.
+/// </summary>
+public sealed class IperfEngine : IDisposable
 {
+    private bool _disposed;
+
     /// <summary>Délégué invoqué pour chaque ligne de sortie d'iperf3 (stdout + stderr).</summary>
     public event Action<string>? OnLogReceived;
 
-    /// <summary>Durée maximale avant annulation automatique du test (défaut : 60 s).</summary>
+    /// <summary>Durée maximale avant annulation automatique du test (défaut : 60 s).</summary>
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(60);
 
     /// <summary>
@@ -20,8 +26,11 @@ public class IperfEngine
     /// <param name="preset">Profil contenant serveur, port, canaux, durée et version IP.</param>
     /// <param name="isReverse">Si <c>true</c>, ajoute <c>-R</c> pour mesurer le download.</param>
     /// <param name="ct">Token d'annulation externe optionnel.</param>
+    /// <exception cref="ObjectDisposedException">Si l'instance a été disposée.</exception>
     public async Task<double> ExecuteAsync(Preset preset, bool isReverse, CancellationToken ct = default)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeoutCts.CancelAfter(Timeout);
         var linkedCt = timeoutCts.Token;
@@ -38,6 +47,14 @@ public class IperfEngine
 
         string ipFlag = preset.IpVersion == IpVersion.IPv6 ? "-6" : "-4";
         return await RunAsync(preset, isReverse, ipFlag, linkedCt);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_disposed) return;
+        OnLogReceived = null;   // libère toutes les closures abonnées
+        _disposed = true;
     }
 
     // ---------------------------------------------------------------
@@ -113,7 +130,13 @@ public class IperfEngine
             await proc.WaitForExitAsync(ct);
             await stderrTask;
         }
-        catch (OperationCanceledException) { /* déjà géré ci-dessus */ }
+        catch (OperationCanceledException)
+        {
+            // Le token a été annulé pendant l'attente de fin de processus :
+            // iperf3 a déjà été tué dans le bloc ci-dessus, on trace et on continue.
+            System.Diagnostics.Debug.WriteLine(
+                "[IperfEngine] WaitForExitAsync annulé — processus déjà tué.");
+        }
 
         return finalBitrate;
     }
