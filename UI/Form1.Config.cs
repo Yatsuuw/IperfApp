@@ -7,24 +7,28 @@ public partial class Form1
 {
   private ConfigData _config = null!;
 
-  // Initialisation de la config
+  /// <summary>Charge la configuration depuis le disque et met à jour l'UI.</summary>
   private void LoadConfigIntoUI()
   {
     _config = ConfigService.Load();
     RefreshPresetList();
   }
 
-  private void RefreshPresetList()
+  /// <summary>Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.</summary>
+  internal void RefreshPresetList()
   {
-    // Désactiver l'événement temporairement pour éviter les boucles
+    if (_config.Presets.Count == 0) return;
+
     cbPresets.SelectedIndexChanged -= CbPresets_SelectedIndexChanged;
 
-    cbPresets.DataSource = null;
-    cbPresets.DataSource = _config.Presets;
+    cbPresets.DataSource    = null;
+    cbPresets.DataSource    = _config.Presets;
     cbPresets.DisplayMember = "Name";
 
-    // Sélectionner le dernier preset utilisé
-    var selected = _config.Presets.FirstOrDefault(p => p.Name == _config.SelectedPresetName) ?? _config.Presets.FirstOrDefault(p => p.Name == "Défaut") ?? _config.Presets[0];
+    var selected =
+      _config.Presets.FirstOrDefault(p => p.Name == _config.SelectedPresetName)
+      ?? _config.Presets[0];
+
     cbPresets.SelectedItem = selected;
     ApplyPreset(selected);
 
@@ -43,14 +47,14 @@ public partial class Form1
 
   private void ApplyPreset(Preset p)
   {
-    txtServer.Text = p.Server;
-    txtPort.Text = p.Port;
-    txtChannels.Text = p.Channels;
+    txtServer.Text   = p.Server;
+    txtPort.Text     = p.Port.ToString();
+    txtChannels.Text = p.Channels.ToString();
     cbIpVersion.SelectedIndex = p.IpVersion switch
     {
       IpVersion.IPv4 => 1,
       IpVersion.IPv6 => 2,
-      _ => 0,
+      _              => 0
     };
   }
 }
