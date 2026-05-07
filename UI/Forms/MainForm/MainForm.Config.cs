@@ -61,22 +61,9 @@ public partial class MainForm
     /// <summary>Remplit les champs UI depuis un profil.</summary>
     private void ApplyPreset(Preset p)
     {
-        txtServer.Text    = p.Server;
-        txtPort.Text      = p.Port.ToString();
-        txtChannels.Text  = p.Channels.ToString();
+        txtServer.Text            = p.Server;
+        txtPort.Text              = p.Port.ToString();
+        txtChannels.Text          = p.Channels.ToString();
         cbIpVersion.SelectedIndex = p.IpVersion.ToComboIndex();
-    }
-
-    /// <summary>Affiche la boîte À propos.</summary>
-    private static void ShowAboutBox()
-    {
-        MessageBox.Show(
-            "Speedtest Iperf\n" +
-            "Version 1.0\n\n" +
-            "Application de mesure de débit réseau\nbasée sur iperf3.\n\n" +
-            "© 2025 — Yatsuuw",
-            "Informations",
-            MessageBoxButtons.OK,
-            MessageBoxIcon.Information);
     }
 }
