@@ -13,7 +13,9 @@ public partial class Form1
     RefreshPresetList();
   }
 
-  /// <summary>Exporte le dernier résultat vers un fichier CSV.</summary>
+  /// <summary>
+  /// Exporte le dernier résultat vers un fichier CSV.
+  /// </summary>
   /// <param name="append">Si <c>true</c>, ajoute au fichier existant ; sinon crée un nouveau.</param>
   private void HandleSave(bool append)
   {
@@ -100,13 +102,8 @@ public partial class Form1
 
     try
     {
-      // On sérialise directement depuis la mémoire (pas de Copy de fichier)
-      ConfigService.Save(new ConfigData
-      {
-        SelectedPresetName = _config.SelectedPresetName,
-        Presets            = _config.Presets
-      });
-
+      // Sérialisation directe depuis la mémoire vers le fichier d'export—
+      // sans toucher à config.json (plus de Save() parasite).
       var opts = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
       File.WriteAllText(sfd.FileName,
         System.Text.Json.JsonSerializer.Serialize(_config, opts));
