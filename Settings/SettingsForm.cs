@@ -1,4 +1,4 @@
-using IperfApp.Services;
+using IperfApp.Models;
 
 namespace IperfApp.UI;
 

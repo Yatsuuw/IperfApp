@@ -5,7 +5,7 @@ namespace IperfApp.UI;
 
 public partial class Form1
 {
-  private ConfigData _config;
+  private ConfigData _config = null!;
 
   // Initialisation de la config
   private void LoadConfigIntoUI()

@@ -1,3 +1,4 @@
+using IperfApp.Models;
 using IperfApp.Services;
 
 namespace IperfApp.UI;
@@ -39,6 +40,5 @@ public partial class Form1 : Form
 
     // Appels aux méthodes situées dans les autres fichiers partial
     SetupModernUI();      
-    LoadConfigIntoUI();   
   }
 }
