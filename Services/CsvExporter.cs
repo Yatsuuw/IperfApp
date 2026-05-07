@@ -10,9 +10,4 @@ public static class CsvExporter
     if (!append || !File.Exists(path) || new FileInfo(path).Length == 0) sw.WriteLine(h);
     sw.WriteLine(l);
   }
-
-  internal static void Save(string fileName, object lastUp, object lastDown, bool append)
-  {
-    throw new NotImplementedException();
-  }
 }
