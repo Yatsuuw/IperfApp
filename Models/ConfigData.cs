@@ -1,4 +1,6 @@
-namespace IperfApp.Services;
+using IperfApp.Services;
+
+namespace IperfApp.Models;
 
 public class ConfigData
 {

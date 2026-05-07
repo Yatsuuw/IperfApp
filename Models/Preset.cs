@@ -1,4 +1,4 @@
-namespace IperfApp.Services;
+namespace IperfApp.Models;
 
 public class Preset
 {
