@@ -14,10 +14,28 @@ public partial class MainForm
         RefreshPresetList();
     }
 
-    /// <summary>Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.</summary>
+    /// <summary>
+    /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
+    /// Si la configuration ne contient aucun profil, désactive le bouton de lancement
+    /// et affiche un message d'information.
+    /// </summary>
     internal void RefreshPresetList()
     {
-        if (_config.Presets.Count == 0) return;
+        if (_config.Presets.Count == 0)
+        {
+            cbPresets.DataSource = null;
+            cbPresets.Items.Clear();
+            btnStart.Enabled = false;
+            btnStart.Text    = "AUCUN PROFIL CONFIGURÉ";
+            MessageBox.Show(
+                "Aucun profil n'est configuré.\n\nOuvrez le menu \"Profils\" pour en créer un.",
+                "Configuration vide", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        // Réactive le bouton si des profils sont disponibles
+        btnStart.Enabled = true;
+        btnStart.Text    = "LANCER L'ANALYSE";
 
         cbPresets.SelectedIndexChanged -= CbPresets_SelectedIndexChanged;
 
