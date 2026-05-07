@@ -13,10 +13,15 @@ public partial class MainForm
         RefreshPresetList();
     }
 
-    /// <summary>Exporte le dernier résultat vers un fichier CSV.</summary>
+    /// <summary>
+    /// Exporte le dernier résultat vers un fichier CSV.
+    /// Utilise le snapshot <see cref="MainForm._lastPreset"/> capturé au moment
+    /// du test — et non les champs UI courants — pour garantir la cohérence
+    /// même si l'utilisateur a modifié le profil entre le test et l'export.
+    /// </summary>
     private void HandleSave(bool append)
     {
-        if (_lastResult is null)
+        if (_lastResult is null || _lastPreset is null)
         {
             MessageBox.Show("Aucun résultat disponible. Lancez d'abord un test.",
                 "Aucun résultat", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -33,7 +38,7 @@ public partial class MainForm
 
         try
         {
-            CsvExporter.Save(fd.FileName, _lastResult, BuildCurrentPreset(), append);
+            CsvExporter.Save(fd.FileName, _lastResult, _lastPreset, append);
             MessageBox.Show("Export réussi !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
@@ -57,6 +62,13 @@ public partial class MainForm
         try
         {
             string content = File.ReadAllText(ofd.FileName);
+
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                MessageBox.Show("Le fichier sélectionné est vide.",
+                    "Échec de l'importation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             if (!ConfigService.TryParse(content, out ConfigData? imported, out string err))
             {
