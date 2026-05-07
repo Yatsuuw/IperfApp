@@ -17,18 +17,18 @@ public partial class Form1
   /// </summary>
   private void BuildActionsArea()
   {
-    const int spacer   = 15;   // espace entre éléments
-    const int btnMainH = 50;   // hauteur bouton Lancer
-    const int btnCancelH = 30; // hauteur bouton Annuler
-    const int logH     = 170;  // hauteur console
-    const int exportH  = 45;   // hauteur boutons export
+    const int spacer    = 15;   // espace entre éléments
+    const int btnMainH  = 50;   // hauteur bouton Lancer
+    const int btnCancelH = 30;  // hauteur bouton Annuler
+    const int logH      = 170;  // hauteur console
+    // Note : la hauteur des boutons export (45) est fixée dans CreateGhostButton()
 
-    int topStart  = CardBottom + spacer;                          // 365
-    int topCancel = topStart  + btnMainH  + spacer / 3;           // ~418
-    int topLog    = topCancel + btnCancelH + spacer;              // ~463
-    int topExport = topLog    + logH      + spacer / 3;           // ~638
+    int topStart  = CardBottom + spacer;
+    int topCancel = topStart  + btnMainH   + spacer / 3;
+    int topLog    = topCancel + btnCancelH + spacer;
+    int topExport = topLog   + logH       + spacer / 3;
 
-    int left  = CardLeft;
+    int left     = CardLeft;
     int btnHalfW = (CardWidth / 2) - 5;
 
     // --- Bouton Lancer ---
@@ -87,7 +87,7 @@ public partial class Form1
     };
 
     // --- Boutons Export CSV ---
-    btnExportNew    = CreateGhostButton("Nouveau rapport",    topExport, left,              btnHalfW);
+    btnExportNew    = CreateGhostButton("Nouveau rapport",    topExport, left,                 btnHalfW);
     btnExportAppend = CreateGhostButton("Ajouter au fichier", topExport, left + btnHalfW + 10, btnHalfW);
     btnExportNew.Click    += (_, _) => HandleSave(false);
     btnExportAppend.Click += (_, _) => HandleSave(true);
