@@ -2,8 +2,6 @@ namespace IperfApp.UI;
 
 public partial class Form1 : Form
 {
-  private readonly Button btnSettings = null!;
-
   private void SetupModernUI()
   {
     // Fenêtre (580x720)
