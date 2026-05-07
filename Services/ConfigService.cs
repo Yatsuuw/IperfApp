@@ -3,110 +3,98 @@ using IperfApp.Models;
 
 namespace IperfApp.Services;
 
+/// <summary>Gestion de la persistance de la configuration (config.json).</summary>
 public static class ConfigService
 {
-  private static readonly string ConfigPath = Path.Combine(AppContext.BaseDirectory, "config.json");
+  private static readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
 
-  public static bool IsValidConfig(string json, out ConfigData? data, out string errorMessage)
+  private static string ConfigPath =>
+    Path.Combine(AppContext.BaseDirectory, "config.json");
+
+  /// <summary>
+  /// Valide et désérialise un JSON de configuration.
+  /// Retourne <c>true</c> si le JSON est valide ; <c>false</c> avec un message explicite sinon.
+  /// </summary>
+  public static bool TryParse(string json, out ConfigData? data, out string errorMessage)
   {
     data = null;
-    errorMessage = "";
+    errorMessage = string.Empty;
+
     try
     {
-      using JsonDocument doc = JsonDocument.Parse(json);
-      JsonElement root = doc.RootElement;
-
-      // Vérification de la racine
-      int rootFieldCount = 0;
-      foreach (var prop in root.EnumerateObject()) rootFieldCount++;
-
-      if (rootFieldCount != 2) {
-        errorMessage = $"Structure racine invalide : {rootFieldCount} champs trouvés au lieu de 2.";
-        return false;
-      }
-
-      if (!root.TryGetProperty("SelectedPresetName", out _) || !root.TryGetProperty("Presets", out JsonElement presetsElem)) {
-        errorMessage = "Les champs racine doivent être exactement 'SelectedPresetName' et 'Presets'.";
-        return false;
-      }
-
-      // Vérification du format de la liste
-      if (presetsElem.ValueKind != JsonValueKind.Array) {
-        errorMessage = "Le champ 'Presets' doit être une liste (Array).";
-        return false;
-      }
-
-      // Vérification de chaque profil
-      foreach (JsonElement preset in presetsElem.EnumerateArray())
-      {
-        int fieldCount = 0;
-        foreach (var prop in preset.EnumerateObject()) fieldCount++;
-
-        if (fieldCount < 4 || fieldCount > 5) {
-          errorMessage = "Un profil contient un nombre de champs incorrect (attendu : 4).";
-          return false;
-        }
-
-        string[] expectedFields = { "Name", "Server", "Port", "Channels" };
-        foreach (var field in expectedFields) {
-          if (!preset.TryGetProperty(field, out _)) {
-            errorMessage = $"Champ manquant : '{field}' attendu dans le profil.";
-            return false;
-          }
-        }
-      }
-
-      // Désérialisation et validation métier
       data = JsonSerializer.Deserialize<ConfigData>(json);
-      if (data == null) return false;
+      if (data is null)
+      {
+        errorMessage = "La désérialisation a produit un résultat nul.";
+        return false;
+      }
+
+      // Validation métier
+      if (data.Presets is null || data.Presets.Count == 0)
+      {
+        errorMessage = "La liste 'Presets' est absente ou vide.";
+        return false;
+      }
 
       foreach (var p in data.Presets)
       {
-        if (string.IsNullOrWhiteSpace(p.Name) || string.IsNullOrWhiteSpace(p.Server)) {
-          errorMessage = "Le nom ou le serveur d'un profil est vide."; return false;
-        }
-        if (!int.TryParse(p.Port, out int port) || port < 1 || port > 65535) {
-          errorMessage = $"Port invalide dans '{p.Name}'."; return false;
-        }
-        if (!int.TryParse(p.Channels, out int chan) || chan < 1) {
-          errorMessage = $"Nombre de canaux invalide dans '{p.Name}'."; return false;
-        }
+        if (string.IsNullOrWhiteSpace(p.Name))
+        { errorMessage = "Un profil possède un nom vide."; return false; }
+
+        if (string.IsNullOrWhiteSpace(p.Server))
+        { errorMessage = $"Le serveur du profil '{p.Name}' est vide."; return false; }
+
+        if (p.Port is < 1 or > 65535)
+        { errorMessage = $"Port invalide ({p.Port}) dans '{p.Name}'."; return false; }
+
+        if (p.Channels < 1)
+        { errorMessage = $"Nombre de canaux invalide ({p.Channels}) dans '{p.Name}'."; return false; }
       }
 
       return true;
     }
-    catch (JsonException ex) {
-      errorMessage = $"Erreur de syntaxe JSON : {ex.Message}";
+    catch (JsonException ex)
+    {
+      errorMessage = $"Syntaxe JSON invalide : {ex.Message}";
       return false;
     }
   }
 
+  /// <summary>Charge la configuration depuis le disque. Retourne une config par défaut si absent ou invalide.</summary>
   public static ConfigData Load()
   {
-    if (!File.Exists(ConfigPath)) return CreateDefault();
+    if (!File.Exists(ConfigPath))
+      return CreateAndSaveDefault();
+
     try
     {
-      var json = File.ReadAllText(ConfigPath);
-      if (IsValidConfig(json, out ConfigData? data, out _)) return data!;
-      return CreateDefault();
+      string json = File.ReadAllText(ConfigPath);
+      return TryParse(json, out ConfigData? data, out _) ? data! : CreateAndSaveDefault();
     }
-    catch { return CreateDefault(); }
+    catch
+    {
+      return CreateAndSaveDefault();
+    }
   }
 
+  /// <summary>Sauvegarde la configuration sur le disque.</summary>
   public static void Save(ConfigData data)
   {
-    var options = new JsonSerializerOptions { WriteIndented = true };
-    File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, options));
+    ArgumentNullException.ThrowIfNull(data);
+    File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, _jsonOpts));
   }
 
-  private static ConfigData CreateDefault()
+  // --- Privé ---
+
+  private static ConfigData CreateAndSaveDefault()
   {
     var data = new ConfigData();
-    data.Presets.Add(new Preset { 
-      Name = "Défaut", 
-      Server = "poi.cubic.iperf.bytel.fr", 
-      Port = "9240", 
-      Channels = "8" 
+    data.Presets.Add(new Preset
+    {
+      Name     = "Défaut",
+      Server   = "poi.cubic.iperf.bytel.fr",
+      Port     = 9240,
+      Channels = 8
     });
     Save(data);
     return data;

@@ -4,73 +4,123 @@ using IperfApp.Models;
 
 namespace IperfApp.Services;
 
+/// <summary>Orchestre les exécutions d'iperf3.exe et retourne le débit mesuré en Mbps.</summary>
 public class IperfEngine
 {
+  /// <summary>Délégué invoqué pour chaque ligne de sortie d'iperf3 (stdout + stderr).</summary>
   public event Action<string>? OnLogReceived;
 
-  public async Task<double> ExecuteAsync(string server, string port, string channels, bool isReverse, IpVersion ipVersion = IpVersion.Auto)
+  /// <summary>Durée maximale avant annulation automatique du test (défaut : 60 s).</summary>
+  public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(60);
+
+  /// <summary>
+  /// Exécute un test iperf3 (upload OU download) et retourne le débit en Mbps.
+  /// Retourne 0 si aucun résultat n'est obtenu ou si le test est annulé.
+  /// </summary>
+  /// <param name="preset">Profil contenant serveur, port, canaux et version IP.</param>
+  /// <param name="isReverse">Si <c>true</c>, ajoute <c>-R</c> pour mesurer le download.</param>
+  /// <param name="ct">Token d'annulation externe optionnel.</param>
+  public async Task<double> ExecuteAsync(Preset preset, bool isReverse, CancellationToken ct = default)
   {
-    // En mode Auto on tente IPv4 d'abord, puis IPv6 si échec
-    if (ipVersion == IpVersion.Auto)
+    using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+    timeoutCts.CancelAfter(Timeout);
+    var linkedCt = timeoutCts.Token;
+
+    if (preset.IpVersion == IpVersion.Auto)
     {
-      double result = await RunAsync(server, port, channels, isReverse, "-4");
+      double result = await RunAsync(preset, isReverse, "-4", linkedCt);
       if (result > 0) return result;
+
+      if (linkedCt.IsCancellationRequested) return 0;
       OnLogReceived?.Invoke("[Auto] IPv4 sans résultat, tentative en IPv6...");
-      return await RunAsync(server, port, channels, isReverse, "-6");
+      return await RunAsync(preset, isReverse, "-6", linkedCt);
     }
 
-    string ipFlag = ipVersion == IpVersion.IPv6 ? "-6" : "-4";
-    return await RunAsync(server, port, channels, isReverse, ipFlag);
+    string ipFlag = preset.IpVersion == IpVersion.IPv6 ? "-6" : "-4";
+    return await RunAsync(preset, isReverse, ipFlag, linkedCt);
   }
 
-  private async Task<double> RunAsync(string server, string port, string channels, bool isReverse, string ipFlag)
+  // --- Privé ---
+
+  private async Task<double> RunAsync(Preset preset, bool isReverse, string ipFlag, CancellationToken ct)
   {
-    string args = $"-c {server} -p {port} -P {channels} {ipFlag} {(isReverse ? "-R" : "")} -f m -i 1".Trim();
+    string args = BuildArgs(preset, isReverse, ipFlag);
     double finalBitrate = 0;
 
-    ProcessStartInfo psi = new()
+    var psi = new ProcessStartInfo
     {
-      FileName = Path.Combine(AppContext.BaseDirectory, "Resources", "iperf3.exe"),
-      Arguments = args,
+      FileName              = Path.Combine(AppContext.BaseDirectory, "Resources", "iperf3.exe"),
+      Arguments             = args,
       RedirectStandardOutput = true,
       RedirectStandardError  = true,
-      UseShellExecute = false,
-      CreateNoWindow  = true
+      UseShellExecute        = false,
+      CreateNoWindow         = true
     };
 
     using var proc = new Process { StartInfo = psi };
-    proc.Start();
 
-    // Lecture de stderr en arrière-plan pour ne pas bloquer
+    try
+    {
+      proc.Start();
+    }
+    catch (Exception ex)
+    {
+      OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
+      return 0;
+    }
+
+    // Lecture stderr en arrière-plan
     var stderrTask = Task.Run(async () =>
     {
       string? line;
-      while ((line = await proc.StandardError.ReadLineAsync()) != null)
-      {
+      while ((line = await proc.StandardError.ReadLineAsync(ct)) != null)
         if (!string.IsNullOrWhiteSpace(line))
           OnLogReceived?.Invoke($"[ERREUR iperf3] {line}");
-      }
-    });
+    }, ct);
 
-    // Lecture de stdout ligne par ligne : toutes les lignes sont traitées
-    // avant de continuer, ce qui évite le problème de race condition
-    string? outputLine;
-    while ((outputLine = await proc.StandardOutput.ReadLineAsync()) != null)
+    // Lecture stdout : garantit que finalBitrate est rempli avant return
+    try
     {
-      OnLogReceived?.Invoke(outputLine);
-      if (outputLine.Contains("receiver"))
+      string? outputLine;
+      while ((outputLine = await proc.StandardOutput.ReadLineAsync(ct)) != null)
       {
-        double parsed = ParseLine(outputLine);
-        if (parsed > 0) finalBitrate = parsed;
+        OnLogReceived?.Invoke(outputLine);
+        if (outputLine.Contains("receiver"))
+        {
+          double parsed = ParseLine(outputLine);
+          if (parsed > 0) finalBitrate = parsed;
+        }
+      }
+    }
+    catch (OperationCanceledException)
+    {
+      OnLogReceived?.Invoke("[AVERTISSEMENT] Test annulé (timeout ou annulation manuelle).");
+      if (!proc.HasExited)
+      {
+        try { proc.Kill(); } catch { /* ignore */ }
       }
     }
 
-    await proc.WaitForExitAsync();
-    await stderrTask;
+    try
+    {
+      await proc.WaitForExitAsync(ct);
+      await stderrTask;
+    }
+    catch (OperationCanceledException) { /* déjà géré ci-dessus */ }
+
     return finalBitrate;
   }
 
-  // Convertit n'importe quelle unité (Kbits, Mbits, Gbits) en Mbps
+  private static string BuildArgs(Preset preset, bool isReverse, string ipFlag)
+  {
+    var sb = new System.Text.StringBuilder();
+    sb.Append($"-c {preset.Server} -p {preset.Port} -P {preset.Channels} {ipFlag}");
+    if (isReverse) sb.Append(" -R");
+    sb.Append(" -f m -i 1");
+    return sb.ToString();
+  }
+
+  /// <summary>Convertit n'importe quelle unité iperf3 (Kbits, Mbits, Gbits) en Mbps.</summary>
   private static double ParseLine(string line)
   {
     try
@@ -82,12 +132,12 @@ public class IperfEngine
         if (!double.TryParse(parts[i - 1], NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
           continue;
 
-        if (unit.StartsWith("Gbits")) return value * 1000.0;
-        if (unit.StartsWith("Mbits")) return value;
-        if (unit.StartsWith("Kbits")) return value / 1000.0;
+        if (unit.StartsWith("Gbits", StringComparison.Ordinal)) return value * 1000.0;
+        if (unit.StartsWith("Mbits", StringComparison.Ordinal)) return value;
+        if (unit.StartsWith("Kbits", StringComparison.Ordinal)) return value / 1000.0;
       }
     }
-    catch { }
+    catch { /* ligne malformée, on ignore */ }
     return 0;
   }
 }
