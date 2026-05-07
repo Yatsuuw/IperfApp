@@ -19,6 +19,15 @@ public partial class MainForm
 
         _lastPreset = BuildCurrentPreset();
 
+        // Validation complète avant de lancer le processus
+        string? validationError = _lastPreset.Validate();
+        if (validationError is not null)
+        {
+            MessageBox.Show(validationError, "Valeurs invalides",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         _testCts?.Dispose();
         _testCts = new CancellationTokenSource();
         var ct = _testCts.Token;
@@ -28,13 +37,14 @@ public partial class MainForm
 
         try
         {
-            txtLog.AppendText(" [SYSTÈME] Démarrage des flux..." + Environment.NewLine);
-            txtLog.AppendText(" >>> FLUX MONTANT (UPLOAD)" + Environment.NewLine);
+            AppendLog("[SYSTÈME] Démarrage des flux...");
+            AppendLog(">>> FLUX MONTANT (UPLOAD)");
             double up = await _engine.ExecuteAsync(_lastPreset, isReverse: false, ct);
 
             if (ct.IsCancellationRequested) return;
 
-            txtLog.AppendText(Environment.NewLine + " <<< FLUX DESCENDANT (DOWNLOAD)" + Environment.NewLine);
+            AppendLog(string.Empty);
+            AppendLog("<<< FLUX DESCENDANT (DOWNLOAD)");
             double down = await _engine.ExecuteAsync(_lastPreset, isReverse: true, ct);
 
             if (!ct.IsCancellationRequested)
@@ -45,7 +55,7 @@ public partial class MainForm
         }
         catch (OperationCanceledException)
         {
-            txtLog.AppendText(" [SYSTÈME] Test annulé par l'utilisateur." + Environment.NewLine);
+            AppendLog("[SYSTÈME] Test annulé par l'utilisateur.");
         }
         catch (Exception ex)
         {
@@ -66,12 +76,18 @@ public partial class MainForm
         _ = int.TryParse(txtPort.Text,     out int port);
         _ = int.TryParse(txtChannels.Text, out int channels);
 
+        // Récupère la durée depuis le profil sélectionné, ou défaut 10 s
+        int duration = cbPresets.SelectedItem is Preset selected && selected.Duration > 0
+            ? selected.Duration
+            : 10;
+
         return new Preset
         {
             Name      = cbPresets.SelectedItem is Preset p ? p.Name : "Temporaire",
             Server    = txtServer.Text.Trim(),
             Port      = port     > 0 ? port     : 5201,
             Channels  = channels > 0 ? channels : 8,
+            Duration  = duration,
             IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex)
         };
     }
@@ -94,10 +110,7 @@ public partial class MainForm
         }
     }
 
-    /// <summary>
-    /// Formate un débit en Mbps vers la bonne unité lisible.
-    /// Réutilisable depuis d'autres méthodes (ex : export, clipboard).
-    /// </summary>
+    /// <summary>Formate un débit en Mbps vers la bonne unité lisible (Kbps / Mbps / Gbps).</summary>
     internal static string FormatMbps(double mbps) => mbps switch
     {
         >= 1000 => $"{mbps / 1000.0:F2} Gbps",
@@ -111,19 +124,24 @@ public partial class MainForm
     /// </summary>
     private void DisplayResults(TestResult r)
     {
+        const string labelUp   = "  Upload   : ";
+        const string labelDown = "  Download : ";
+        const int    labelW    = 13; // longueur des deux labels identique
+
         string up   = FormatMbps(r.Upload);
         string down = FormatMbps(r.Download);
 
-        int valueWidth = Math.Max(up.Length, down.Length);
-        string sep     = new string('─', 24 + valueWidth);
+        int valueW  = Math.Max(up.Length, down.Length);
+        int innerW  = labelW + valueW + 2;             // marge droite de 2 espaces
+        string sep  = new string('─', innerW);
 
         var sb = new StringBuilder();
         sb.AppendLine();
         sb.AppendLine($" ┌{sep}┐");
-        sb.AppendLine($" │  RÉSULTATS DE LA MESURE{new string(' ', valueWidth)}│");
+        sb.AppendLine($" │  RÉSULTATS DE LA MESURE{new string(' ', innerW - 24)}│");
         sb.AppendLine($" ├{sep}┤");
-        sb.AppendLine($" │  Upload   : {up.PadLeft(valueWidth)}           │");
-        sb.AppendLine($" │  Download : {down.PadLeft(valueWidth)}           │");
+        sb.AppendLine($" │{labelUp}{up.PadLeft(valueW)}  │");
+        sb.AppendLine($" │{labelDown}{down.PadLeft(valueW)}  │");
         sb.AppendLine($" └{sep}┘");
         txtLog.AppendText(sb.ToString());
     }

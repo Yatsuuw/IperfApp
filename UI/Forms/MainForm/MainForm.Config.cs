@@ -7,17 +7,11 @@ namespace IperfApp.UI.Forms.MainForm;
 public partial class MainForm
 {
     /// <summary>Charge la configuration depuis le disque et met à jour l'UI.</summary>
-    private void LoadConfigIntoUI()
-    {
-        // _config est déjà chargé dans le constructeur ; on se contente de
-        // rafraîchir la liste des profils dans l'interface.
-        RefreshPresetList();
-    }
+    private void LoadConfigIntoUI() => RefreshPresetList();
 
     /// <summary>
     /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
-    /// Si la configuration ne contient aucun profil, désactive le bouton de lancement
-    /// et affiche un message d'information.
+    /// Désactive le bouton de lancement si aucun profil n'existe.
     /// </summary>
     internal void RefreshPresetList()
     {
@@ -37,10 +31,9 @@ public partial class MainForm
         btnStart.Text    = "LANCER L'ANALYSE";
 
         cbPresets.SelectedIndexChanged -= CbPresets_SelectedIndexChanged;
-
         cbPresets.DataSource    = null;
         cbPresets.DataSource    = _config.Presets;
-        cbPresets.DisplayMember = "Name";
+        cbPresets.DisplayMember = nameof(Preset.Name);
 
         var selected =
             _config.Presets.FirstOrDefault(p => p.Name == _config.SelectedPresetName)
@@ -48,33 +41,42 @@ public partial class MainForm
 
         cbPresets.SelectedItem = selected;
         ApplyPreset(selected);
-
         cbPresets.SelectedIndexChanged += CbPresets_SelectedIndexChanged;
     }
 
     private void CbPresets_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        if (cbPresets.SelectedItem is Preset p)
+        if (cbPresets.SelectedItem is not Preset p) return;
+
+        _config.SelectedPresetName = p.Name;
+        try   { ConfigService.Save(_config); }
+        catch (Exception ex)
         {
-            _config.SelectedPresetName = p.Name;
-            try
-            {
-                ConfigService.Save(_config);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
-            }
-            ApplyPreset(p);
+            System.Diagnostics.Debug.WriteLine(
+                $"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
         }
+        ApplyPreset(p);
     }
 
+    /// <summary>Remplit les champs UI depuis un profil.</summary>
     private void ApplyPreset(Preset p)
     {
-        txtServer.Text            = p.Server;
-        txtPort.Text              = p.Port.ToString();
-        txtChannels.Text          = p.Channels.ToString();
-        cbIpVersion.SelectedIndex = IpVersionExtensions.ToComboIndex(p.IpVersion);
+        txtServer.Text    = p.Server;
+        txtPort.Text      = p.Port.ToString();
+        txtChannels.Text  = p.Channels.ToString();
+        cbIpVersion.SelectedIndex = p.IpVersion.ToComboIndex();
+    }
+
+    /// <summary>Affiche la boîte À propos.</summary>
+    private static void ShowAboutBox()
+    {
+        MessageBox.Show(
+            "Speedtest Iperf\n" +
+            "Version 1.0\n\n" +
+            "Application de mesure de débit réseau\nbasée sur iperf3.\n\n" +
+            "© 2025 — Yatsuuw",
+            "Informations",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
     }
 }

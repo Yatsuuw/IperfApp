@@ -6,8 +6,7 @@ namespace IperfApp.Services;
 
 /// <summary>
 /// Orchestre les exécutions d'iperf3.exe et retourne le débit mesuré en Mbps.
-/// Implémente <see cref="IDisposable"/> pour permettre la libération propre
-/// des abonnements à <see cref="OnLogReceived"/>.
+/// Implémente <see cref="IDisposable"/> pour libérer les abonnements à <see cref="OnLogReceived"/>.
 /// </summary>
 public sealed class IperfEngine : IDisposable
 {
@@ -16,20 +15,17 @@ public sealed class IperfEngine : IDisposable
     /// <summary>Délégué invoqué pour chaque ligne de sortie d'iperf3 (stdout + stderr).</summary>
     public event Action<string>? OnLogReceived;
 
-    /// <summary>Durée maximale avant annulation automatique du test (défaut : 60 s).</summary>
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(60);
+    /// <summary>Durée maximale avant annulation automatique du test (défaut : 90 s).</summary>
+    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(90);
 
     /// <summary>
     /// Exécute un test iperf3 (upload OU download) et retourne le débit en Mbps.
     /// Retourne 0 si aucun résultat n'est obtenu ou si le test est annulé.
     /// </summary>
-    /// <param name="preset">Profil contenant serveur, port, canaux, durée et version IP.</param>
-    /// <param name="isReverse">Si <c>true</c>, ajoute <c>-R</c> pour mesurer le download.</param>
-    /// <param name="ct">Token d'annulation externe optionnel.</param>
-    /// <exception cref="ObjectDisposedException">Si l'instance a été disposée.</exception>
     public async Task<double> ExecuteAsync(Preset preset, bool isReverse, CancellationToken ct = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(preset);
 
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         timeoutCts.CancelAfter(Timeout);
@@ -39,7 +35,6 @@ public sealed class IperfEngine : IDisposable
         {
             double result = await RunAsync(preset, isReverse, "-4", linkedCt);
             if (result > 0) return result;
-
             if (linkedCt.IsCancellationRequested) return 0;
             OnLogReceived?.Invoke("[Auto] IPv4 sans résultat, tentative en IPv6...");
             return await RunAsync(preset, isReverse, "-6", linkedCt);
@@ -53,7 +48,7 @@ public sealed class IperfEngine : IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        OnLogReceived = null;   // libère toutes les closures abonnées
+        OnLogReceived = null;
         _disposed = true;
     }
 
@@ -63,13 +58,12 @@ public sealed class IperfEngine : IDisposable
 
     private async Task<double> RunAsync(Preset preset, bool isReverse, string ipFlag, CancellationToken ct)
     {
-        string args        = BuildArgs(preset, isReverse, ipFlag);
         double finalBitrate = 0;
 
         var psi = new ProcessStartInfo
         {
             FileName               = Path.Combine(AppContext.BaseDirectory, "Resources", "iperf3.exe"),
-            Arguments              = args,
+            Arguments              = BuildArgs(preset, isReverse, ipFlag),
             RedirectStandardOutput = true,
             RedirectStandardError  = true,
             UseShellExecute        = false,
@@ -91,10 +85,14 @@ public sealed class IperfEngine : IDisposable
         // Lecture stderr en arrière-plan
         var stderrTask = Task.Run(async () =>
         {
-            string? line;
-            while ((line = await proc.StandardError.ReadLineAsync(ct)) != null)
-                if (!string.IsNullOrWhiteSpace(line))
-                    OnLogReceived?.Invoke($"[ERREUR iperf3] {line}");
+            try
+            {
+                string? line;
+                while ((line = await proc.StandardError.ReadLineAsync(ct)) != null)
+                    if (!string.IsNullOrWhiteSpace(line))
+                        OnLogReceived?.Invoke($"[ERREUR iperf3] {line}");
+            }
+            catch (OperationCanceledException) { /* attendu lors de l'annulation */ }
         }, ct);
 
         // Lecture stdout ligne par ligne
@@ -106,7 +104,7 @@ public sealed class IperfEngine : IDisposable
                 OnLogReceived?.Invoke(outputLine);
                 if (outputLine.Contains("receiver", StringComparison.Ordinal))
                 {
-                    double parsed = ParseLine(outputLine);
+                    double parsed = ParseBitrate(outputLine);
                     if (parsed > 0) finalBitrate = parsed;
                 }
             }
@@ -114,15 +112,7 @@ public sealed class IperfEngine : IDisposable
         catch (OperationCanceledException)
         {
             OnLogReceived?.Invoke("[AVERTISSEMENT] Test annulé (timeout ou annulation manuelle).");
-            if (!proc.HasExited)
-            {
-                try { proc.Kill(entireProcessTree: true); }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(
-                        $"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
-                }
-            }
+            KillProcess(proc);
         }
 
         try
@@ -132,49 +122,49 @@ public sealed class IperfEngine : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Le token a été annulé pendant l'attente de fin de processus :
-            // iperf3 a déjà été tué dans le bloc ci-dessus, on trace et on continue.
-            System.Diagnostics.Debug.WriteLine(
-                "[IperfEngine] WaitForExitAsync annulé — processus déjà tué.");
+            Debug.WriteLine("[IperfEngine] WaitForExitAsync annulé — processus déjà tué.");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
         }
 
         return finalBitrate;
     }
 
+    private void KillProcess(Process proc)
+    {
+        if (proc.HasExited) return;
+        try { proc.Kill(entireProcessTree: true); }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
+        }
+    }
+
     private static string BuildArgs(Preset preset, bool isReverse, string ipFlag)
     {
-        int duration = preset.Duration > 0 ? preset.Duration : 10;
-        var sb = new System.Text.StringBuilder();
-        sb.Append($"-c {preset.Server} -p {preset.Port} -P {preset.Channels} {ipFlag} -t {duration}");
-        if (isReverse) sb.Append(" -R");
-        sb.Append(" -f m -i 1");
-        return sb.ToString();
+        int duration = preset.Duration is > 0 and <= 120 ? preset.Duration : 10;
+        string reverse = isReverse ? " -R" : string.Empty;
+        return $"-c {preset.Server} -p {preset.Port} -P {preset.Channels} {ipFlag} -t {duration}{reverse} -f m -i 1";
     }
 
     /// <summary>
     /// Convertit n'importe quelle unité iperf3 (Kbits/sec, Mbits/sec, Gbits/sec) en Mbps.
     /// Retourne 0 si la ligne ne contient pas de valeur de débit reconnaissable.
     /// </summary>
-    private static double ParseLine(string line)
+    private static double ParseBitrate(string line)
     {
-        try
+        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 1; i < parts.Length; i++)
         {
-            var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 1; i < parts.Length; i++)
-            {
-                if (!double.TryParse(parts[i - 1], NumberStyles.Any,
-                        CultureInfo.InvariantCulture, out double value))
-                    continue;
+            if (!double.TryParse(parts[i - 1], NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
+                continue;
 
-                string unit = parts[i];
-                if (unit.StartsWith("Gbits", StringComparison.OrdinalIgnoreCase)) return value * 1000.0;
-                if (unit.StartsWith("Mbits", StringComparison.OrdinalIgnoreCase)) return value;
-                if (unit.StartsWith("Kbits", StringComparison.OrdinalIgnoreCase)) return value / 1000.0;
-            }
-        }
-        catch
-        {
-            // Ligne malformée — on retourne 0 sans faire remonter l'exception.
+            string unit = parts[i];
+            if (unit.StartsWith("Gbits", StringComparison.OrdinalIgnoreCase)) return value * 1000.0;
+            if (unit.StartsWith("Mbits", StringComparison.OrdinalIgnoreCase)) return value;
+            if (unit.StartsWith("Kbits", StringComparison.OrdinalIgnoreCase)) return value / 1000.0;
         }
         return 0;
     }

@@ -6,15 +6,13 @@ public partial class MainForm
 {
     /// <summary>
     /// Construit la zone d'actions (boutons Lancer / Annuler, console logs, exports CSV).
-    /// <paramref name="cardLeft"/> est fourni par <c>SetupModernUI</c> — même valeur
-    /// que celle passée à <see cref="BuildConfigCard"/> pour garantir l'alignement.
     /// </summary>
     private void BuildActionsArea(int cardLeft)
     {
-        const int spacer   = 14;
-        const int btnMainH = 52;
+        const int spacer     = 14;
+        const int btnMainH   = 52;
         const int btnCancelH = 32;
-        const int logH     = 180;
+        const int logH       = 180;
 
         int topStart  = CardBottom + spacer;
         int topCancel = topStart  + btnMainH   + 6;
@@ -82,5 +80,29 @@ public partial class MainForm
         btnExportAppend = CreateGhostButton("Ajouter au fichier", topExport, cardLeft + btnHalfW + 10, btnHalfW);
         btnExportNew.Click    += (_, _) => HandleSave(false);
         btnExportAppend.Click += (_, _) => HandleSave(true);
+    }
+
+    /// <summary>
+    /// Crée un bouton "ghost" (fond transparent, bordure légère) pour les actions secondaires.
+    /// </summary>
+    private Button CreateGhostButton(string text, int top, int left, int width)
+    {
+        var btn = new Button
+        {
+            Text      = text,
+            Top       = top,
+            Left      = left,
+            Width     = width,
+            Height    = 34,
+            BackColor = Color.Transparent,
+            ForeColor = AppColors.Accent,
+            FlatStyle = FlatStyle.Flat,
+            Font      = _fonts.Track(new Font("Segoe UI", 9F)),
+            Cursor    = Cursors.Hand,
+            Enabled   = false
+        };
+        btn.FlatAppearance.BorderColor = AppColors.ExportBorderDisabled;
+        btn.FlatAppearance.BorderSize  = 1;
+        return btn;
     }
 }
