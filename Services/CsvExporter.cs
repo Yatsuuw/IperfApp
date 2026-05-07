@@ -1,3 +1,4 @@
+using System.Text;
 using IperfApp.Models;
 
 namespace IperfApp.Services;
@@ -7,6 +8,13 @@ public static class CsvExporter
 {
   /// <summary>Séparateur de colonnes. Modifiez cette constante pour changer le format CSV.</summary>
   private const string Separator = ";";
+
+  /// <summary>
+  /// Encodage UTF-8 avec BOM : permet à Excel (Windows) de détecter
+  /// automatiquement l'encodage sans étape d'importation manuelle.
+  /// </summary>
+  private static readonly Encoding CsvEncoding =
+    new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
   private static readonly string Header =
     string.Join(Separator,
@@ -28,7 +36,7 @@ public static class CsvExporter
     bool fileExists = File.Exists(path) && new FileInfo(path).Length > 0;
     bool needHeader = !append || !fileExists;
 
-    using var sw = new StreamWriter(path, append: append);
+    using var sw = new StreamWriter(path, append: append, encoding: CsvEncoding);
 
     if (needHeader)
       sw.WriteLine(Header);

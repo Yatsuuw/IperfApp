@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -15,22 +15,23 @@
     <Company>Lucas PIETERS</Company>
     <Authors>Lucas PIETERS</Authors>
     <Copyright>Copyright © 2026 Lucas PIETERS</Copyright>
-    
-    <Version>1.0.4</Version>
-    <AssemblyVersion>1.0.4</AssemblyVersion>
-    <FileVersion>1.0.4</FileVersion>
-    
+
+    <!-- Version unique — alignée avec installer.iss et sign_github.ps1 -->
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0</AssemblyVersion>
+    <FileVersion>1.1.0</FileVersion>
+
     <NeutralLanguage>fr-FR</NeutralLanguage>
   </PropertyGroup>
 
   <Target Name="ForceCopyResources" AfterTargets="Publish">
-  <ItemGroup>
-    <ResourceFiles Include="$(ProjectDir)Resources\**\*.*" />
-  </ItemGroup>
-  <Copy 
-    SourceFiles="@(ResourceFiles)" 
-    DestinationFolder="$(PublishDir)Resources\%(RecursiveDir)" 
-    SkipUnchangedFiles="false" />
-</Target>
+    <ItemGroup>
+      <ResourceFiles Include="$(ProjectDir)Resources\**\*.*" />
+    </ItemGroup>
+    <Copy
+      SourceFiles="@(ResourceFiles)"
+      DestinationFolder="$(PublishDir)Resources\%(RecursiveDir)"
+      SkipUnchangedFiles="false" />
+  </Target>
 
 </Project>
