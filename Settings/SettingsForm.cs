@@ -15,9 +15,11 @@ public partial class SettingsForm : Form
   {
     _data = data;
 
-    // Initialisation de la structure et de la logique
     SetupUI(parent);
-    UpdateList();
-    SetLockedState(true);
+
+    // Sélectionne le profil "Défaut" à l'ouverture pour que le panneau
+    // droit soit immédiatement rempli et verrouillé (via LoadSelected).
+    string firstProfile = _data.Presets.FirstOrDefault()?.Name ?? "";
+    UpdateList(firstProfile);
   }
 }
