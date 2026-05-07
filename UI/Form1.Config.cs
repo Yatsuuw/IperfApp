@@ -1,9 +1,12 @@
+using IperfApp.Models;
 using IperfApp.Services;
 
 namespace IperfApp.UI;
 
 public partial class Form1
 {
+  private ConfigData _config;
+
   // Initialisation de la config
   private void LoadConfigIntoUI()
   {
@@ -43,5 +46,11 @@ public partial class Form1
     txtServer.Text = p.Server;
     txtPort.Text = p.Port;
     txtChannels.Text = p.Channels;
+    cbIpVersion.SelectedIndex = p.IpVersion switch
+    {
+      IpVersion.IPv4 => 1,
+      IpVersion.IPv6 => 2,
+      _ => 0,
+    };
   }
 }

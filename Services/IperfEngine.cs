@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Globalization;
+using IperfApp.Models;
 
 namespace IperfApp.Services;
 
@@ -7,9 +8,16 @@ public class IperfEngine
 {
   public event Action<string>? OnLogReceived;
 
-  public async Task<double> ExecuteAsync(string server, string port, string channels, bool isReverse)
+  public async Task<double> ExecuteAsync(string server, string port, string channels, bool isReverse, IpVersion ipVersion = IpVersion.Auto)
   {
-    string args = $"-c {server} -p {port} -P {channels} {(isReverse ? "-R" : "")} -f m -i 1";
+    string ipFlag = ipVersion switch
+    {
+      IpVersion.IPv4 => "-4",
+      IpVersion.IPv6 => "-6",
+      _ => "",
+    };
+
+    string args = $"-c {server} -p {port} -P {channels} {ipFlag} {(isReverse ? "-R" : "")} -f m -i 1".Trim();
     double finalBitrate = 0;
 
     ProcessStartInfo psi = new()

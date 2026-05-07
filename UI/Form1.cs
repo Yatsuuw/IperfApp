@@ -4,7 +4,6 @@ namespace IperfApp.UI;
 
 public partial class Form1 : Form
 {
-  private ConfigData _config = null!; // Cette ligne manquait !
   private double _lastUp = 0;
   private double _lastDown = 0;
   private readonly IperfEngine _engine = new();
@@ -12,7 +11,8 @@ public partial class Form1 : Form
   // Variables d'interface
   private TextBox txtServer = null!, txtPort = null!, txtChannels = null!, txtLog = null!;
   private Button btnStart = null!, btnExportNew = null!, btnExportAppend = null!;
-  private ComboBox cbPresets = null!; 
+  private ComboBox cbPresets = null!;
+  private ComboBox cbIpVersion = null!;
   private readonly ToolTip _mainToolTip = new();
 
   // Couleurs

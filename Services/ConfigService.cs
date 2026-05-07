@@ -1,4 +1,5 @@
 using System.Text.Json;
+using IperfApp.Models;
 
 namespace IperfApp.Services;
 
@@ -41,7 +42,7 @@ public static class ConfigService
         int fieldCount = 0;
         foreach (var prop in preset.EnumerateObject()) fieldCount++;
 
-        if (fieldCount != 4) {
+        if (fieldCount < 4 || fieldCount > 5) {
           errorMessage = "Un profil contient un nombre de champs incorrect (attendu : 4).";
           return false;
         }
@@ -96,6 +97,11 @@ public static class ConfigService
   {
     var options = new JsonSerializerOptions { WriteIndented = true };
     File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, options));
+  }
+
+  internal static void Save(ConfigData config)
+  {
+    throw new NotImplementedException();
   }
 
   private static ConfigData CreateDefault()

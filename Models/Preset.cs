@@ -6,4 +6,5 @@ public class Preset
   public string Server { get; set; } = "";
   public string Port { get; set; } = "5201";
   public string Channels { get; set; } = "8";
+  public IpVersion IpVersion { get; set; } = IpVersion.Auto;
 }

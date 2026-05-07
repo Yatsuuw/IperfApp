@@ -62,7 +62,7 @@ public partial class Form1 : Form
     // Carte de Configuration
     var pnlCard = new Panel {
       BackColor = _colorCard,
-      Size = new Size(cardW, 210),
+      Size = new Size(cardW, 255),
       Location = new Point(startX, 95)
     };
     pnlCard.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle, Color.FromArgb(230, 235, 240), ButtonBorderStyle.Solid);
@@ -80,6 +80,25 @@ public partial class Form1 : Form
       Top = internalTop, Left = rowX + labelW + gap, Width = inputW - 45, 
       DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10F) 
     };
+
+    var lblIpVersion = new Label
+    {
+      Text = "Protocole :", Top = internalTop + 3, Left = rowX, Width = labelW,
+      Font = new Font("Segoe UI Semibold", 9F),
+      TextAlign = ContentAlignment.MiddleRight, ForeColor = Color.DimGray
+    };
+    cbIpVersion = new ComboBox
+    {
+      Top = internalTop, Left = rowX = labelW + gap, Width = inputW,
+      DropDownStyle = ComboBoxStyle.DropDownList,
+      Font = new Font("Segoe UI", 10F)
+    };
+    cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
+    cbIpVersion.SelectedIndex = 0;
+
+    _mainToolTip.SetToolTip(cbIpVersion, "Force le protocole IP utilisé par iperf3 (-4, -6, ou auto)");
+    pnlCard.Controls.AddRange([lblIpVersion, cbIpVersion]);
+    internalTop += 42;
 
     pnlCard.Controls.AddRange([lblPreset, cbPresets, btnSettings]);
     internalTop += 45;

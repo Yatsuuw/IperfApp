@@ -1,3 +1,5 @@
+using IperfApp.Models;
+
 namespace IperfApp.UI;
 
 public partial class Form1
@@ -11,6 +13,13 @@ public partial class Form1
       return;
     }
 
+    IpVersion selectedIp = cbIpVersion.SelectedIndex switch
+    {
+      1 => IpVersion.IPv4,
+      2 => IpVersion.IPv6,
+      _ => IpVersion.Auto,
+    };
+
     btnStart.Enabled = false;
     btnStart.Text = "ANALYSE EN COURS...";
     btnStart.BackColor = Color.FromArgb(160, 174, 192);
@@ -18,10 +27,10 @@ public partial class Form1
 
     txtLog.AppendText(" [SYSTÈME] Démarrage des flux..." + Environment.NewLine);
     txtLog.AppendText(" >>> FLUX MONTANT (UPLOAD)" + Environment.NewLine);
-    _lastUp = await _engine.ExecuteAsync(txtServer.Text, txtPort.Text, txtChannels.Text, false);
+    _lastUp = await _engine.ExecuteAsync(txtServer.Text, txtPort.Text, txtChannels.Text, false, selectedIp);
 
     txtLog.AppendText(Environment.NewLine + " <<< FLUX DESCENDANT (DOWNLOAD)" + Environment.NewLine);
-    _lastDown = await _engine.ExecuteAsync(txtServer.Text, txtPort.Text, txtChannels.Text, true);
+    _lastDown = await _engine.ExecuteAsync(txtServer.Text, txtPort.Text, txtChannels.Text, true, selectedIp);
 
     txtLog.AppendText(Environment.NewLine + " ╔══════════════════════════════════════╗" + Environment.NewLine);
     txtLog.AppendText($" ║  RÉSULTATS DE LA MESURE              ║" + Environment.NewLine);
