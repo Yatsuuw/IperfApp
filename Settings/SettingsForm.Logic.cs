@@ -11,8 +11,8 @@ public partial class SettingsForm : Form
     {
       txtName.Text     = p.Name;
       txtServer.Text   = p.Server;
-      txtPort.Text     = p.Port;
-      txtChannels.Text = p.Channels;
+      txtPort.Text     = p.Port.ToString();
+      txtChannels.Text = p.Channels.ToString();
       cbIpVersion.SelectedIndex = p.IpVersion switch
       {
         IpVersion.IPv4 => 1,
@@ -37,10 +37,10 @@ public partial class SettingsForm : Form
   {
     if (lstPresets.SelectedItem is not Preset p || p.Name == "Défaut") return;
 
-    p.Name     = txtName.Text;
-    p.Server   = txtServer.Text;
-    p.Port     = txtPort.Text;
-    p.Channels = txtChannels.Text;
+    p.Name   = txtName.Text;
+    p.Server = txtServer.Text;
+    _ = int.TryParse(txtPort.Text,     out int port);     p.Port     = port     > 0 ? port     : 5201;
+    _ = int.TryParse(txtChannels.Text, out int channels); p.Channels = channels > 0 ? channels : 8;
     p.IpVersion = cbIpVersion.SelectedIndex switch
     {
       1 => IpVersion.IPv4,
@@ -62,7 +62,7 @@ public partial class SettingsForm : Form
 
   private void CreateNew()
   {
-    var newP = new Preset { Name = "Nouveau profil", Server = "0.0.0.0", Port = "5201", Channels = "8", IpVersion = IpVersion.Auto };
+    var newP = new Preset { Name = "Nouveau profil", Server = "0.0.0.0", Port = 5201, Channels = 8, IpVersion = IpVersion.Auto };
     _data.Presets.Add(newP);
     UpdateList(newP.Name);
     txtName.Focus();
