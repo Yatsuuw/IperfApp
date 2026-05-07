@@ -81,28 +81,4 @@ public partial class MainForm
         btnExportNew.Click    += (_, _) => HandleSave(false);
         btnExportAppend.Click += (_, _) => HandleSave(true);
     }
-
-    /// <summary>
-    /// Crée un bouton "ghost" (fond transparent, bordure légère) pour les actions secondaires.
-    /// </summary>
-    private Button CreateGhostButton(string text, int top, int left, int width)
-    {
-        var btn = new Button
-        {
-            Text      = text,
-            Top       = top,
-            Left      = left,
-            Width     = width,
-            Height    = 34,
-            BackColor = Color.Transparent,
-            ForeColor = AppColors.Accent,
-            FlatStyle = FlatStyle.Flat,
-            Font      = _fonts.Track(new Font("Segoe UI", 9F)),
-            Cursor    = Cursors.Hand,
-            Enabled   = false
-        };
-        btn.FlatAppearance.BorderColor = AppColors.ExportBorderDisabled;
-        btn.FlatAppearance.BorderSize  = 1;
-        return btn;
-    }
 }

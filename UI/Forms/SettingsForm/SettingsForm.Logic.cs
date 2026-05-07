@@ -10,19 +10,13 @@ public partial class SettingsForm
     // Sélection
     // ---------------------------------------------------------------
 
-    private void OnPresetSelectionChanged(object? sender, EventArgs e)
-    {
-        if (lstPresets.SelectedItem is Preset p)
-            LoadPresetIntoFields(p);
-    }
-
     private void LoadPresetIntoFields(Preset p)
     {
-        lblHeader.Text         = p.Name;
-        txtName.Text           = p.Name;
-        txtServer.Text         = p.Server;
-        txtPort.Text           = p.Port.ToString();
-        txtChannels.Text       = p.Channels.ToString();
+        lblHeader.Text            = p.Name;
+        txtName.Text              = p.Name;
+        txtServer.Text            = p.Server;
+        txtPort.Text              = p.Port.ToString();
+        txtChannels.Text          = p.Channels.ToString();
         cbIpVersion.SelectedIndex = p.IpVersion.ToComboIndex();
     }
 
@@ -50,7 +44,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Profil créé en mémoire mais non sauvegardé sur le disque :\n{ex.Message}",
+                $"Profil créé en mémoire mais non sauvegardé sur le disque :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
@@ -73,7 +67,7 @@ public partial class SettingsForm
         }
 
         var confirm = MessageBox.Show(
-            $"Supprimer le profil \u00ab {p.Name} \u00bb ? Cette action est irréversible.",
+            $"Supprimer le profil « {p.Name} » ? Cette action est irréversible.",
             "Confirmer la suppression",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Warning);
@@ -89,7 +83,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Profil supprimé en mémoire mais la sauvegarde a échoué :\n{ex.Message}",
+                $"Profil supprimé en mémoire mais la sauvegarde a échoué :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
@@ -108,9 +102,9 @@ public partial class SettingsForm
         string name   = txtName.Text.Trim();
         string server = txtServer.Text.Trim();
 
-        if (!int.TryParse(txtPort.Text,     out int port)     || port     is < 1 or > 65535)
+        if (!int.TryParse(txtPort.Text, out int port) || port is < 1 or > 65535)
         {
-            MessageBox.Show("Port invalide — doit être un entier entre 1 et 65 535.",
+            MessageBox.Show("Port invalide — doit être un entier entre 1 et 65 535.",
                 "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -152,7 +146,7 @@ public partial class SettingsForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Sauvegarde échouée :\n{ex.Message}",
+            MessageBox.Show($"Sauvegarde échouée :\n{ex.Message}",
                 "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -166,26 +160,5 @@ public partial class SettingsForm
         btnSave.BackColor = originalColor;
 
         UpdateList(updated.Name);
-    }
-
-    // ---------------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------------
-
-    private void UpdateList(string? selectName = null)
-    {
-        lstPresets.SelectedIndexChanged -= OnPresetSelectionChanged;
-        lstPresets.DataSource = null;
-        lstPresets.DataSource = _data.Presets;
-        lstPresets.DisplayMember = nameof(Preset.Name);
-
-        if (selectName is not null)
-        {
-            var target = _data.Presets.FirstOrDefault(p => p.Name == selectName);
-            if (target is not null) lstPresets.SelectedItem = target;
-        }
-
-        lstPresets.SelectedIndexChanged += OnPresetSelectionChanged;
-        lstPresets.Refresh();
     }
 }

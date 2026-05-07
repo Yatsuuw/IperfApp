@@ -53,7 +53,7 @@ public partial class MainForm
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
+                $"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
         }
         ApplyPreset(p);
     }
