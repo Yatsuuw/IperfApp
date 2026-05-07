@@ -10,7 +10,7 @@ public partial class SettingsForm
     // Helpers : construction des champs de formulaire
     // ---------------------------------------------------------------
 
-    private static void AddInputField(Panel p, string label, TextBox tb, ref int top)
+    private void AddInputField(Panel p, string label, TextBox tb, ref int top)
     {
         var lbl = new Label
         {
@@ -40,7 +40,6 @@ public partial class SettingsForm
         tb.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
         tb.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
 
-        // Enregistrement pour dispose ultérieur
         _trackedFonts.Add(lbl.Font);
         _trackedFonts.Add(tb.Font);
 
@@ -48,7 +47,7 @@ public partial class SettingsForm
         top += 55;
     }
 
-    private static void AddNumericField(Panel p, string label, TextBox tb, ref int top)
+    private void AddNumericField(Panel p, string label, TextBox tb, ref int top)
     {
         AddInputField(p, label, tb, ref top);
         tb.KeyPress += (_, e) =>
@@ -58,7 +57,7 @@ public partial class SettingsForm
         };
     }
 
-    private static void AddComboField(Panel p, string label, ComboBox cb, ref int top)
+    private void AddComboField(Panel p, string label, ComboBox cb, ref int top)
     {
         var lbl = new Label
         {
