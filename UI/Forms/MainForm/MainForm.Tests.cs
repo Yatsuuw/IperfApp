@@ -1,3 +1,4 @@
+using System.Text;
 using IperfApp.Models;
 using IperfApp.UI.Constants;
 
@@ -15,7 +16,9 @@ public partial class MainForm
             return;
         }
 
-        var preset = BuildCurrentPreset();
+        // Snapshot du profil au moment du lancement — l'export CSV utilisera
+        // toujours CE profil, même si l'utilisateur modifie les champs après.
+        _lastPreset = BuildCurrentPreset();
 
         // Dispose du CTS précédent avant d'en créer un nouveau
         _testCts?.Dispose();
@@ -29,12 +32,12 @@ public partial class MainForm
         {
             txtLog.AppendText(" [SYSTÈME] Démarrage des flux..." + Environment.NewLine);
             txtLog.AppendText(" >>> FLUX MONTANT (UPLOAD)" + Environment.NewLine);
-            double up = await _engine.ExecuteAsync(preset, isReverse: false, ct);
+            double up = await _engine.ExecuteAsync(_lastPreset, isReverse: false, ct);
 
             if (ct.IsCancellationRequested) return;
 
             txtLog.AppendText(Environment.NewLine + " <<< FLUX DESCENDANT (DOWNLOAD)" + Environment.NewLine);
-            double down = await _engine.ExecuteAsync(preset, isReverse: true, ct);
+            double down = await _engine.ExecuteAsync(_lastPreset, isReverse: true, ct);
 
             if (!ct.IsCancellationRequested)
             {
@@ -89,18 +92,21 @@ public partial class MainForm
             bool hasResult = _lastResult is not null;
             btnExportNew.Enabled    = hasResult;
             btnExportAppend.Enabled = hasResult;
-            btnExportNew.FlatAppearance.BorderColor    = hasResult ? AppColors.Accent : Color.FromArgb(210, 220, 230);
-            btnExportAppend.FlatAppearance.BorderColor = hasResult ? AppColors.Accent : Color.FromArgb(210, 220, 230);
+            btnExportNew.FlatAppearance.BorderColor    = hasResult ? AppColors.Accent : AppColors.ExportBorderDisabled;
+            btnExportAppend.FlatAppearance.BorderColor = hasResult ? AppColors.Accent : AppColors.ExportBorderDisabled;
         }
     }
 
+    /// <summary>Affiche le récapitulatif des mesures dans la console de logs.</summary>
     private void DisplayResults(TestResult r)
     {
-        txtLog.AppendText(Environment.NewLine +
-            " ╔══════════════════════════════════════╗" + Environment.NewLine +
-            $" ║  RÉSULTATS DE LA MESURE              ║" + Environment.NewLine +
-            $" ║  Upload   : {r.Upload,10:F2} Mbps          ║" + Environment.NewLine +
-            $" ║  Download : {r.Download,10:F2} Mbps          ║" + Environment.NewLine +
-            " ╚══════════════════════════════════════╝" + Environment.NewLine);
+        var sb = new StringBuilder();
+        sb.AppendLine();
+        sb.AppendLine(" ╔══════════════════════════════════════╗");
+        sb.AppendLine($" ║  RÉSULTATS DE LA MESURE              ║");
+        sb.AppendLine($" ║  Upload   : {r.Upload,10:F2} Mbps          ║");
+        sb.AppendLine($" ║  Download : {r.Download,10:F2} Mbps          ║");
+        sb.AppendLine(" ╚══════════════════════════════════════╝");
+        txtLog.AppendText(sb.ToString());
     }
 }
