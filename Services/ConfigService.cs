@@ -99,11 +99,6 @@ public static class ConfigService
     File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, options));
   }
 
-  internal static void Save(ConfigData config)
-  {
-    throw new NotImplementedException();
-  }
-
   private static ConfigData CreateDefault()
   {
     var data = new ConfigData();
