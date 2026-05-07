@@ -8,15 +8,11 @@ public partial class MainForm
     // Constantes de mise en page de la carte
     // ---------------------------------------------------------------
     private const int RowLabelW   = 90;   // largeur du label
-    private const int RowInputW   = 270;  // largeur du champ / combo (marge droite = 30px minimum)
+    private const int RowInputW   = 270;  // largeur du champ / combo
     private const int RowGap      = 12;   // espace label → champ
     private const int RowPaddingL = 35;   // marge gauche
     // Total occupé : 35 + 90 + 12 + 270 = 407 px  →  marge droite = 480 - 407 = 73 px
 
-    /// <summary>
-    /// Construit la carte de configuration centrale.
-    /// Chaque ligne est alignée : label (droite) | champ (gauche) sur la même baseline.
-    /// </summary>
     private Panel BuildConfigCard(int cardLeft)
     {
         var pnlCard = new Panel
@@ -32,16 +28,12 @@ public partial class MainForm
 
         int top = 20;
 
-        // ---- Ligne : Profil ----
         AddCardComboRow(pnlCard, "Profil",    ref cbPresets,   ref top, isAccent: true);
-
-        // ---- Lignes texte / numérique ----
-        AddCardTextRow(pnlCard, "Serveur",    ref txtServer,   isNumeric: false, ref top);
-        AddCardTextRow(pnlCard, "Port",       ref txtPort,     isNumeric: true,  ref top);
-        AddCardTextRow(pnlCard, "Canaux",     ref txtChannels, isNumeric: true,  ref top);
-
-        // ---- Ligne : Protocole IP ----
+        AddCardTextRow (pnlCard, "Serveur",   ref txtServer,   isNumeric: false, ref top);
+        AddCardTextRow (pnlCard, "Port",      ref txtPort,     isNumeric: true,  ref top);
+        AddCardTextRow (pnlCard, "Canaux",    ref txtChannels, isNumeric: true,  ref top);
         AddCardComboRow(pnlCard, "Protocole", ref cbIpVersion, ref top, isAccent: false);
+
         cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cbIpVersion.SelectedIndex = 0;
         _mainToolTip.SetToolTip(cbIpVersion,
@@ -55,8 +47,7 @@ public partial class MainForm
     // ---------------------------------------------------------------
 
     private void AddCardTextRow(
-        Panel card,
-        string label,
+        Panel card, string label,
         ref TextBox field,
         bool isNumeric,
         ref int top)
@@ -118,8 +109,7 @@ public partial class MainForm
     // ---------------------------------------------------------------
 
     private void AddCardComboRow(
-        Panel card,
-        string label,
+        Panel card, string label,
         ref ComboBox combo,
         ref int top,
         bool isAccent)
@@ -146,7 +136,7 @@ public partial class MainForm
             Width         = RowInputW,
             DropDownStyle = ComboBoxStyle.DropDownList,
             Font          = _fonts.Track(new Font("Segoe UI", 10F)),
-            FlatStyle     = FlatStyle.Flat
+            FlatStyle     = FlatStyle.Standard   // Standard = bordure native visible
         };
 
         card.Controls.AddRange([lbl, combo]);
