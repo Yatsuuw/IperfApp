@@ -120,10 +120,10 @@ public partial class MainForm
         var sb = new StringBuilder();
         sb.AppendLine();
         sb.AppendLine($" ┌{sep}┐");
-        sb.AppendLine($" │  RÉSULTATS DE LA MESURE{new string(' ', valueWidth)}  │");
+        sb.AppendLine($" │  RÉSULTATS DE LA MESURE{new string(' ', valueWidth)}│");
         sb.AppendLine($" ├{sep}┤");
-        sb.AppendLine($" │  Upload   : {up.PadLeft(valueWidth)}          │");
-        sb.AppendLine($" │  Download : {down.PadLeft(valueWidth)}          │");
+        sb.AppendLine($" │  Upload   : {up.PadLeft(valueWidth)}           │");
+        sb.AppendLine($" │  Download : {down.PadLeft(valueWidth)}           │");
         sb.AppendLine($" └{sep}┘");
         txtLog.AppendText(sb.ToString());
     }
