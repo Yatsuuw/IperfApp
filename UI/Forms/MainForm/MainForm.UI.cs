@@ -77,7 +77,7 @@ public partial class MainForm : Form
 
         var menuConfig = new ToolStripMenuItem("Configuration")
         {
-            ForeColor = Color.DimGray,
+            ForeColor = AppColors.TextMuted,
             Font      = new Font("Segoe UI", 9F)
         };
         menuConfig.DropDownItems.AddRange([
@@ -87,7 +87,7 @@ public partial class MainForm : Form
 
         var menuInfo = new ToolStripMenuItem("Informations")
         {
-            ForeColor = Color.DimGray,
+            ForeColor = AppColors.TextMuted,
             Font      = new Font("Segoe UI", 9F)
         };
         menuInfo.Click += (_, _) => ShowAboutBox();
