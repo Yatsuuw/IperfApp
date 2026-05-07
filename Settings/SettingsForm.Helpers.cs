@@ -67,7 +67,7 @@ public partial class SettingsForm : Form
     cb.Font         = new Font("Segoe UI Semibold", 9.5F);
     cb.DropDownStyle = ComboBoxStyle.DropDownList;
     cb.FlatStyle    = FlatStyle.Flat;
-    cb.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
+    cb.Items.AddRange(["Auto (d\u00e9faut)", "IPv4 (-4)", "IPv6 (-6)"]);
     cb.SelectedIndex = 0;
 
     Panel line = new()
@@ -97,7 +97,6 @@ public partial class SettingsForm : Form
     e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
     bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
 
-    // Fond — SolidBrush dans un using pour éviter la fuite GDI
     using (var bgBrush = new SolidBrush(isSelected ? Color.FromArgb(0, 120, 215) : lstPresets.BackColor))
       e.Graphics.FillRectangle(bgBrush, e.Bounds);
 
@@ -146,7 +145,6 @@ public partial class SettingsForm : Form
 
   // ---------------------------------------------------------------
   // Mise à jour de la liste des profils
-  // Utilise une méthode nommée pour pouvoir se désabonner proprement.
   // ---------------------------------------------------------------
 
   /// <summary>Gestionnaire nommé de SelectedIndexChanged — permet le désabonnement propre.</summary>
@@ -156,6 +154,8 @@ public partial class SettingsForm : Form
   /// Repeuple la <see cref="ListBox"/> des profils.
   /// Désabonne / ré-abonne <see cref="OnPresetSelectionChanged"/> pour éviter
   /// les déclenchements multiples pendant le rechargement de la source de données.
+  /// Appelle explicitement <see cref="LoadSelected"/> si une sélection est établie,
+  /// car l'événement est muet pendant le rechargement.
   /// </summary>
   /// <param name="toSelect">Nom du profil à sélectionner après la mise à jour (optionnel).</param>
   private void UpdateList(string toSelect = "")
@@ -169,7 +169,13 @@ public partial class SettingsForm : Form
     if (!string.IsNullOrEmpty(toSelect))
     {
       var item = _data.Presets.FirstOrDefault(x => x.Name == toSelect);
-      if (item != null) lstPresets.SelectedItem = item;
+      if (item != null)
+      {
+        lstPresets.SelectedItem = item;
+        // L'événement étant muet pendant cette opération, on appelle
+        // LoadSelected() explicitement pour remplir le panneau droit.
+        LoadSelected();
+      }
     }
     else
     {
