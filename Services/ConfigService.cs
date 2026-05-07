@@ -8,13 +8,20 @@ public static class ConfigService
 {
   private static readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
 
-  private static string ConfigPath =>
+  /// <summary>
+  /// Chemin absolu vers config.json, calculé une seule fois au démarrage.
+  /// Invariant pendant toute la durée de vie du processus.
+  /// </summary>
+  private static readonly string ConfigPath =
     Path.Combine(AppContext.BaseDirectory, "config.json");
 
   /// <summary>
   /// Valide et désérialise un JSON de configuration.
   /// Retourne <c>true</c> si le JSON est valide ; <c>false</c> avec un message explicite sinon.
   /// </summary>
+  /// <param name="json">Contenu JSON à valider.</param>
+  /// <param name="data">Données désérialisées si succès, sinon <c>null</c>.</param>
+  /// <param name="errorMessage">Message d'erreur lisible si échec, sinon vide.</param>
   public static bool TryParse(string json, out ConfigData? data, out string errorMessage)
   {
     data = null;
@@ -29,12 +36,8 @@ public static class ConfigService
         return false;
       }
 
-      // Validation métier
       if (data.Presets is null || data.Presets.Count == 0)
-      {
-        errorMessage = "La liste 'Presets' est absente ou vide.";
-        return false;
-      }
+      { errorMessage = "La liste 'Presets' est absente ou vide."; return false; }
 
       foreach (var p in data.Presets)
       {
@@ -60,7 +63,10 @@ public static class ConfigService
     }
   }
 
-  /// <summary>Charge la configuration depuis le disque. Retourne une config par défaut si absent ou invalide.</summary>
+  /// <summary>
+  /// Charge la configuration depuis le disque.
+  /// Retourne une configuration par défaut si le fichier est absent ou invalide.
+  /// </summary>
   public static ConfigData Load()
   {
     if (!File.Exists(ConfigPath))
@@ -78,13 +84,16 @@ public static class ConfigService
   }
 
   /// <summary>Sauvegarde la configuration sur le disque.</summary>
+  /// <param name="data">Données à persister (ne doit pas être null).</param>
   public static void Save(ConfigData data)
   {
     ArgumentNullException.ThrowIfNull(data);
     File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, _jsonOpts));
   }
 
-  // --- Privé ---
+  // ---------------------------------------------------------------
+  // Privé
+  // ---------------------------------------------------------------
 
   private static ConfigData CreateAndSaveDefault()
   {
