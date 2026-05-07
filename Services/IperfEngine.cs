@@ -10,49 +10,79 @@ public class IperfEngine
 
   public async Task<double> ExecuteAsync(string server, string port, string channels, bool isReverse, IpVersion ipVersion = IpVersion.Auto)
   {
-    string ipFlag = ipVersion switch
+    // En mode Auto on tente IPv4 d'abord, puis IPv6 si échec
+    if (ipVersion == IpVersion.Auto)
     {
-      IpVersion.IPv4 => "-4",
-      IpVersion.IPv6 => "-6",
-      _ => "",
-    };
+      double result = await RunAsync(server, port, channels, isReverse, "-4");
+      if (result > 0) return result;
+      OnLogReceived?.Invoke("[Auto] IPv4 sans résultat, tentative en IPv6...");
+      return await RunAsync(server, port, channels, isReverse, "-6");
+    }
 
+    string ipFlag = ipVersion == IpVersion.IPv6 ? "-6" : "-4";
+    return await RunAsync(server, port, channels, isReverse, ipFlag);
+  }
+
+  private async Task<double> RunAsync(string server, string port, string channels, bool isReverse, string ipFlag)
+  {
     string args = $"-c {server} -p {port} -P {channels} {ipFlag} {(isReverse ? "-R" : "")} -f m -i 1".Trim();
     double finalBitrate = 0;
 
     ProcessStartInfo psi = new()
     {
       FileName = Path.Combine(AppContext.BaseDirectory, "Resources", "iperf3.exe"),
-      Arguments = args, RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true
+      Arguments = args,
+      RedirectStandardOutput = true,
+      RedirectStandardError  = true,
+      UseShellExecute  = false,
+      CreateNoWindow   = true
     };
 
     using var proc = new Process { StartInfo = psi };
-    proc.OutputDataReceived += (s, e) => {
-      if (e.Data != null) 
+
+    proc.OutputDataReceived += (s, e) =>
+    {
+      if (e.Data is null) return;
+      OnLogReceived?.Invoke(e.Data);
+      // On cible la ligne SUM receiver (multi-flux) ou receiver (flux unique)
+      if (e.Data.Contains("receiver"))
       {
-        OnLogReceived?.Invoke(e.Data);
-        if (e.Data.Contains("receiver")) finalBitrate = ParseLine(e.Data);
+        double parsed = ParseLine(e.Data);
+        if (parsed > 0) finalBitrate = parsed;
       }
     };
 
-    proc.Start(); proc.BeginOutputReadLine();
+    proc.ErrorDataReceived += (s, e) =>
+    {
+      if (!string.IsNullOrWhiteSpace(e.Data))
+        OnLogReceived?.Invoke($"[ERREUR iperf3] {e.Data}");
+    };
+
+    proc.Start();
+    proc.BeginOutputReadLine();
+    proc.BeginErrorReadLine();
     await proc.WaitForExitAsync();
     return finalBitrate;
   }
 
-  private static double ParseLine(string line) {
-    try 
+  // Convertit n'importe quelle unité (Kbits, Mbits, Gbits) en Mbps
+  private static double ParseLine(string line)
+  {
+    try
     {
       var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-      for (int i = 0; i < parts.Length; i++) 
+      for (int i = 0; i < parts.Length; i++)
       {
-        if (parts[i].Contains("Mbits/sec") && i > 0)
-          return double.Parse(parts[i - 1], CultureInfo.InvariantCulture);
-      }
-    } catch
-    {
+        if (i == 0) continue;
+        string unit = parts[i];
+        double value = double.Parse(parts[i - 1], CultureInfo.InvariantCulture);
 
+        if (unit.StartsWith("Gbits")) return value * 1000.0;
+        if (unit.StartsWith("Mbits")) return value;
+        if (unit.StartsWith("Kbits")) return value / 1000.0;
+      }
     }
+    catch { }
     return 0;
   }
 }
