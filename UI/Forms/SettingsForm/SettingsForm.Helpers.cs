@@ -68,7 +68,11 @@ public partial class SettingsForm
     // Abonnement sélection ListBox
     // ---------------------------------------------------------------
 
-    private void OnPresetSelectionChanged(object? sender, EventArgs e) => LoadSelected();
+    private void OnPresetSelectionChanged(object? sender, EventArgs e)
+    {
+        if (lstPresets.SelectedItem is Preset p)
+            LoadPresetIntoFields(p);
+    }
 
     /// <summary>
     /// Repeuple la ListBox.
@@ -81,7 +85,7 @@ public partial class SettingsForm
 
         lstPresets.DataSource    = null;
         lstPresets.DataSource    = _data.Presets;
-        lstPresets.DisplayMember = "Name";
+        lstPresets.DisplayMember = nameof(Preset.Name);
 
         if (!string.IsNullOrEmpty(toSelect))
         {
@@ -89,7 +93,7 @@ public partial class SettingsForm
             if (item is not null)
             {
                 lstPresets.SelectedItem = item;
-                LoadSelected();
+                LoadPresetIntoFields(item);
             }
         }
         else
