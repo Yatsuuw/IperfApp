@@ -34,34 +34,39 @@ public class IperfEngine
       Arguments = args,
       RedirectStandardOutput = true,
       RedirectStandardError  = true,
-      UseShellExecute  = false,
-      CreateNoWindow   = true
+      UseShellExecute = false,
+      CreateNoWindow  = true
     };
 
     using var proc = new Process { StartInfo = psi };
+    proc.Start();
 
-    proc.OutputDataReceived += (s, e) =>
+    // Lecture de stderr en arrière-plan pour ne pas bloquer
+    var stderrTask = Task.Run(async () =>
     {
-      if (e.Data is null) return;
-      OnLogReceived?.Invoke(e.Data);
-      // On cible la ligne SUM receiver (multi-flux) ou receiver (flux unique)
-      if (e.Data.Contains("receiver"))
+      string? line;
+      while ((line = await proc.StandardError.ReadLineAsync()) != null)
       {
-        double parsed = ParseLine(e.Data);
+        if (!string.IsNullOrWhiteSpace(line))
+          OnLogReceived?.Invoke($"[ERREUR iperf3] {line}");
+      }
+    });
+
+    // Lecture de stdout ligne par ligne : toutes les lignes sont traitées
+    // avant de continuer, ce qui évite le problème de race condition
+    string? outputLine;
+    while ((outputLine = await proc.StandardOutput.ReadLineAsync()) != null)
+    {
+      OnLogReceived?.Invoke(outputLine);
+      if (outputLine.Contains("receiver"))
+      {
+        double parsed = ParseLine(outputLine);
         if (parsed > 0) finalBitrate = parsed;
       }
-    };
+    }
 
-    proc.ErrorDataReceived += (s, e) =>
-    {
-      if (!string.IsNullOrWhiteSpace(e.Data))
-        OnLogReceived?.Invoke($"[ERREUR iperf3] {e.Data}");
-    };
-
-    proc.Start();
-    proc.BeginOutputReadLine();
-    proc.BeginErrorReadLine();
     await proc.WaitForExitAsync();
+    await stderrTask;
     return finalBitrate;
   }
 
@@ -71,11 +76,11 @@ public class IperfEngine
     try
     {
       var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-      for (int i = 0; i < parts.Length; i++)
+      for (int i = 1; i < parts.Length; i++)
       {
-        if (i == 0) continue;
         string unit = parts[i];
-        double value = double.Parse(parts[i - 1], CultureInfo.InvariantCulture);
+        if (!double.TryParse(parts[i - 1], NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
+          continue;
 
         if (unit.StartsWith("Gbits")) return value * 1000.0;
         if (unit.StartsWith("Mbits")) return value;
