@@ -13,6 +13,7 @@ public partial class SettingsForm : Form
       txtServer.Text   = p.Server;
       txtPort.Text     = p.Port.ToString();
       txtChannels.Text = p.Channels.ToString();
+      txtDuration.Text = p.Duration > 0 ? p.Duration.ToString() : "10";
       cbIpVersion.SelectedIndex = p.IpVersion switch
       {
         IpVersion.IPv4 => 1,
@@ -33,22 +34,17 @@ public partial class SettingsForm : Form
     }
   }
 
-  /// <summary>
-  /// Valide et enregistre le profil sélectionné.
-  /// Retourne <c>false</c> si la validation échoue.
-  /// </summary>
+  /// <summary>Valide et enregistre le profil sélectionné.</summary>
   private async Task SaveDataAsync()
   {
     if (lstPresets.SelectedItem is not Preset p || p.Name == "Défaut") return;
 
-    // --- Validation ---
     string name = txtName.Text.Trim();
     if (string.IsNullOrWhiteSpace(name))
     {
       MessageBox.Show("Le nom du scénario ne peut pas être vide.", "Validation",
         MessageBoxButtons.OK, MessageBoxIcon.Warning);
-      txtName.Focus();
-      return;
+      txtName.Focus(); return;
     }
 
     string server = txtServer.Text.Trim();
@@ -56,31 +52,35 @@ public partial class SettingsForm : Form
     {
       MessageBox.Show("L'adresse du serveur ne peut pas être vide.", "Validation",
         MessageBoxButtons.OK, MessageBoxIcon.Warning);
-      txtServer.Focus();
-      return;
+      txtServer.Focus(); return;
     }
 
     if (!int.TryParse(txtPort.Text, out int port) || port < 1 || port > 65535)
     {
       MessageBox.Show("Le port doit être un entier compris entre 1 et 65535.", "Validation",
         MessageBoxButtons.OK, MessageBoxIcon.Warning);
-      txtPort.Focus();
-      return;
+      txtPort.Focus(); return;
     }
 
     if (!int.TryParse(txtChannels.Text, out int channels) || channels < 1)
     {
       MessageBox.Show("Le nombre de canaux doit être un entier supérieur ou égal à 1.", "Validation",
         MessageBoxButtons.OK, MessageBoxIcon.Warning);
-      txtChannels.Focus();
-      return;
+      txtChannels.Focus(); return;
     }
 
-    // --- Mise à jour du modèle ---
+    if (!int.TryParse(txtDuration.Text, out int duration) || duration < 1 || duration > 120)
+    {
+      MessageBox.Show("La durée doit être un entier compris entre 1 et 120 secondes.", "Validation",
+        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      txtDuration.Focus(); return;
+    }
+
     p.Name      = name;
     p.Server    = server;
     p.Port      = port;
     p.Channels  = channels;
+    p.Duration  = duration;
     p.IpVersion = cbIpVersion.SelectedIndex switch
     {
       1 => IpVersion.IPv4,
@@ -94,7 +94,6 @@ public partial class SettingsForm : Form
     UpdateList();
     lstPresets.SelectedIndex = currentIndex;
 
-    // --- Feedback visuel ---
     string oldTxt = btnSave.Text;
     Color  oldCol = btnSave.BackColor;
     btnSave.Text      = "✓ ENREGISTRÉ";
@@ -109,9 +108,10 @@ public partial class SettingsForm : Form
     var newP = new Preset
     {
       Name      = "Nouveau profil",
-      Server    = "",          // vide : l'utilisateur doit saisir l'adresse
+      Server    = "",
       Port      = 5201,
       Channels  = 8,
+      Duration  = 10,
       IpVersion = IpVersion.Auto
     };
     _data.Presets.Add(newP);

@@ -26,18 +26,19 @@ public partial class Form1
     try
     {
       txtLog.AppendText(" [SYSTÈME] Démarrage des flux..." + Environment.NewLine);
-      txtLog.AppendText(" >>> FLUX MONTANT (UPLOAD)" + Environment.NewLine);
+      txtLog.AppendText($" >>> FLUX MONTANT (UPLOAD) — durée : {preset.Duration} s" + Environment.NewLine);
       double up = await _engine.ExecuteAsync(preset, isReverse: false, ct);
 
       if (ct.IsCancellationRequested) return;
 
-      txtLog.AppendText(Environment.NewLine + " <<< FLUX DESCENDANT (DOWNLOAD)" + Environment.NewLine);
+      txtLog.AppendText(Environment.NewLine + $" <<< FLUX DESCENDANT (DOWNLOAD) — durée : {preset.Duration} s" + Environment.NewLine);
       double down = await _engine.ExecuteAsync(preset, isReverse: true, ct);
 
       if (!ct.IsCancellationRequested)
       {
         _lastResult = new TestResult(up, down, DateTime.Now);
         DisplayResults(_lastResult);
+        AddToHistory(_lastResult);
       }
     }
     catch (OperationCanceledException)
@@ -60,13 +61,15 @@ public partial class Form1
   {
     _ = int.TryParse(txtPort.Text,     out int port);
     _ = int.TryParse(txtChannels.Text, out int channels);
+    _ = int.TryParse(txtDuration.Text, out int duration);
 
     return new Preset
     {
       Name      = cbPresets.SelectedItem is Preset p ? p.Name : "Temporaire",
       Server    = txtServer.Text.Trim(),
-      Port      = port     > 0 ? port     : 5201,
-      Channels  = channels > 0 ? channels : 8,
+      Port      = port     > 0   ? port     : 5201,
+      Channels  = channels > 0   ? channels : 8,
+      Duration  = duration is >= 1 and <= 120 ? duration : 10,
       IpVersion = cbIpVersion.SelectedIndex switch
       {
         1 => IpVersion.IPv4,
@@ -82,7 +85,6 @@ public partial class Form1
     btnStart.Enabled   = !running;
     btnCancel.Enabled  =  running;
     btnStart.Text      = running ? "ANALYSE EN COURS..." : "LANCER L'ANALYSE";
-    // Couleur issue de la palette centrale — plus de valeur ARGB en dur
     btnStart.BackColor = running ? _colorAccentDisabled : _colorAccent;
 
     if (!running)
@@ -103,5 +105,17 @@ public partial class Form1
       $" ║  Upload   : {r.Upload,10:F2} Mbps          ║" + Environment.NewLine +
       $" ║  Download : {r.Download,10:F2} Mbps          ║" + Environment.NewLine +
       " ╚══════════════════════════════════════╝" + Environment.NewLine);
+  }
+
+  /// <summary>
+  /// Ajoute un résultat à l'historique en mémoire (max <see cref="HistoryMaxSize"/>)
+  /// puis rafraîchit le panel historique.
+  /// </summary>
+  private void AddToHistory(TestResult result)
+  {
+    if (_history.Count >= HistoryMaxSize)
+      _history.RemoveAt(0);
+    _history.Add(result);
+    RefreshHistory();
   }
 }

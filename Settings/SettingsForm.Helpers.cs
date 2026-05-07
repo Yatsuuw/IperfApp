@@ -130,13 +130,14 @@ public partial class SettingsForm : Form
   private void SetLockedState(bool locked)
   {
     txtName.ReadOnly = txtServer.ReadOnly =
-      txtPort.ReadOnly = txtChannels.ReadOnly = locked;
+      txtPort.ReadOnly = txtChannels.ReadOnly =
+      txtDuration.ReadOnly = locked;
     cbIpVersion.Enabled = !locked;
 
     Color bg = locked ? Color.FromArgb(248, 248, 248) : Color.White;
     Color fg = locked ? Color.FromArgb(160, 160, 160) : Color.Black;
 
-    foreach (var field in new TextBox[] { txtName, txtServer, txtPort, txtChannels })
+    foreach (var field in new TextBox[] { txtName, txtServer, txtPort, txtChannels, txtDuration })
     {
       field.BackColor = bg;
       field.ForeColor = fg;
@@ -147,17 +148,8 @@ public partial class SettingsForm : Form
   // Mise à jour de la liste des profils
   // ---------------------------------------------------------------
 
-  /// <summary>Gestionnaire nommé de SelectedIndexChanged — permet le désabonnement propre.</summary>
   private void OnPresetSelectionChanged(object? sender, EventArgs e) => LoadSelected();
 
-  /// <summary>
-  /// Repeuple la <see cref="ListBox"/> des profils.
-  /// Désabonne / ré-abonne <see cref="OnPresetSelectionChanged"/> pour éviter
-  /// les déclenchements multiples pendant le rechargement de la source de données.
-  /// Appelle explicitement <see cref="LoadSelected"/> si une sélection est établie,
-  /// car l'événement est muet pendant le rechargement.
-  /// </summary>
-  /// <param name="toSelect">Nom du profil à sélectionner après la mise à jour (optionnel).</param>
   private void UpdateList(string toSelect = "")
   {
     lstPresets.SelectedIndexChanged -= OnPresetSelectionChanged;
@@ -172,8 +164,6 @@ public partial class SettingsForm : Form
       if (item != null)
       {
         lstPresets.SelectedItem = item;
-        // L'événement étant muet pendant cette opération, on appelle
-        // LoadSelected() explicitement pour remplir le panneau droit.
         LoadSelected();
       }
     }

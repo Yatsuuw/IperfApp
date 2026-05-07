@@ -12,16 +12,13 @@ public partial class Form1
   /// Initialise <see cref="btnStart"/>, <see cref="btnCancel"/>,
   /// <see cref="txtLog"/>, <see cref="btnExportNew"/> et
   /// <see cref="btnExportAppend"/>.
-  /// Toutes les positions Y sont calculées relativement à
-  /// <see cref="CardBottom"/> pour faciliter les ajustements futurs.
   /// </summary>
   private void BuildActionsArea()
   {
-    const int spacer    = 15;   // espace entre éléments
-    const int btnMainH  = 50;   // hauteur bouton Lancer
-    const int btnCancelH = 30;  // hauteur bouton Annuler
-    const int logH      = 170;  // hauteur console
-    // Note : la hauteur des boutons export (45) est fixée dans CreateGhostButton()
+    const int spacer    = 15;
+    const int btnMainH  = 50;
+    const int btnCancelH = 30;
+    const int logH      = 170;
 
     int topStart  = CardBottom + spacer;
     int topCancel = topStart  + btnMainH   + spacer / 3;

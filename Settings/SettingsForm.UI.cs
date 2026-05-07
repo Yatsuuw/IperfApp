@@ -6,7 +6,7 @@ public partial class SettingsForm : Form
   {
     Text = " Profils";
     Icon = parent.Icon;
-    Size = new Size(520, 480);
+    Size = new Size(520, 540);
     BackColor = Color.White;
     FormBorderStyle = FormBorderStyle.FixedDialog;
     StartPosition = FormStartPosition.CenterParent;
@@ -31,8 +31,6 @@ public partial class SettingsForm : Form
     lstPresets.DrawMode = DrawMode.OwnerDrawFixed;
     lstPresets.Cursor = Cursors.Hand;
     lstPresets.DrawItem += DrawListItem;
-    // Abonnement via la méthode nommée uniquement — pas de lambda ici,
-    // pour permettre le désabonnement propre dans UpdateList().
     lstPresets.SelectedIndexChanged += OnPresetSelectionChanged;
 
     pnlLeft.Controls.AddRange([lstPresets, pnlBtns]);
@@ -44,10 +42,11 @@ public partial class SettingsForm : Form
     lblHeader.AutoSize = true;
 
     int top = 65;
-    AddInputField(pnlRight,  "NOM DU SCÉNARIO", txtName,    ref top);
-    AddInputField(pnlRight,  "ADRESSE SERVEUR", txtServer,  ref top);
-    AddNumericField(pnlRight, "PORT",            txtPort,    ref top);
+    AddInputField(pnlRight,   "NOM DU SCÉNARIO", txtName,     ref top);
+    AddInputField(pnlRight,   "ADRESSE SERVEUR", txtServer,   ref top);
+    AddNumericField(pnlRight, "PORT",            txtPort,     ref top);
     AddNumericField(pnlRight, "CANAUX",          txtChannels, ref top);
+    AddNumericField(pnlRight, "DURÉE (s)",       txtDuration, ref top);
     AddComboField(pnlRight,   "PROTOCOLE IP",    cbIpVersion, ref top);
 
     btnSave.Text = "ENREGISTRER";

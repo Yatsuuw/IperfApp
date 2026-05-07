@@ -50,6 +50,7 @@ public partial class Form1
     txtServer.Text   = p.Server;
     txtPort.Text     = p.Port.ToString();
     txtChannels.Text = p.Channels.ToString();
+    txtDuration.Text = p.Duration > 0 ? p.Duration.ToString() : "10";
     cbIpVersion.SelectedIndex = p.IpVersion switch
     {
       IpVersion.IPv4 => 1,

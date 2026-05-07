@@ -17,7 +17,7 @@ public class IperfEngine
     /// Exécute un test iperf3 (upload OU download) et retourne le débit en Mbps.
     /// Retourne 0 si aucun résultat n'est obtenu ou si le test est annulé.
     /// </summary>
-    /// <param name="preset">Profil contenant serveur, port, canaux et version IP.</param>
+    /// <param name="preset">Profil contenant serveur, port, canaux, durée et version IP.</param>
     /// <param name="isReverse">Si <c>true</c>, ajoute <c>-R</c> pour mesurer le download.</param>
     /// <param name="ct">Token d'annulation externe optionnel.</param>
     public async Task<double> ExecuteAsync(Preset preset, bool isReverse, CancellationToken ct = default)
@@ -120,8 +120,9 @@ public class IperfEngine
 
     private static string BuildArgs(Preset preset, bool isReverse, string ipFlag)
     {
+        int duration = preset.Duration > 0 ? preset.Duration : 10;
         var sb = new System.Text.StringBuilder();
-        sb.Append($"-c {preset.Server} -p {preset.Port} -P {preset.Channels} {ipFlag}");
+        sb.Append($"-c {preset.Server} -p {preset.Port} -P {preset.Channels} {ipFlag} -t {duration}");
         if (isReverse) sb.Append(" -R");
         sb.Append(" -f m -i 1");
         return sb.ToString();

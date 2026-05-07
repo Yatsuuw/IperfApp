@@ -12,10 +12,14 @@ public partial class Form1 : Form
   /// <summary>Position X calculée pour centrer la carte dans la fenêtre.</summary>
   private int CardLeft => (ClientSize.Width - CardWidth) / 2;
 
-  /// <summary>Position Y du bas de la carte (Top carte + hauteur carte).</summary>
+  /// <summary>Position Y du haut de la carte.</summary>
   private const int CardTop    = 95;
-  private const int CardHeight = 255;
-  private const int CardBottom = CardTop + CardHeight;   // 350
+
+  /// <summary>Hauteur de la carte (agrandie pour le champ Durée).</summary>
+  private const int CardHeight = 297;
+
+  /// <summary>Position Y du bas de la carte.</summary>
+  private const int CardBottom = CardTop + CardHeight;   // 392
 
   // ---------------------------------------------------------------
   // Point d'entrée principal
@@ -26,7 +30,7 @@ public partial class Form1 : Form
   {
     // --- Fenêtre ---
     Text            = " Speedtest Iperf";
-    Size            = new Size(580, 760);
+    Size            = new Size(580, 980);
     BackColor       = _colorBackground;
     FormBorderStyle = FormBorderStyle.FixedSingle;
     MaximizeBox     = false;
@@ -47,6 +51,7 @@ public partial class Form1 : Form
     var menuStrip = BuildMenuStrip();
     var pnlCard   = BuildConfigCard();
     BuildActionsArea();
+    BuildHistoryArea();
 
     // --- Infobulles ---
     _mainToolTip.SetToolTip(cbPresets,   "Sélectionnez un profil pré-enregistré.");
@@ -58,7 +63,9 @@ public partial class Form1 : Form
     // --- Ajout des contrôles à la fenêtre ---
     MainMenuStrip = menuStrip;
     Controls.Add(menuStrip);
-    Controls.AddRange([lblTitle, pnlCard, btnStart, btnCancel, txtLog, btnExportNew, btnExportAppend]);
+    Controls.AddRange([lblTitle, pnlCard, btnStart, btnCancel,
+                       txtLog, btnExportNew, btnExportAppend,
+                       _lvHistory, _chart]);
 
     // --- Chargement de la config (une seule fois) ---
     LoadConfigIntoUI();
