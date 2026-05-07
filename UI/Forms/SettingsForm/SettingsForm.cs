@@ -27,4 +27,29 @@ public partial class SettingsForm : Form
         string firstProfile = _data.Presets.FirstOrDefault()?.Name ?? string.Empty;
         UpdateList(firstProfile);
     }
+
+    /// <summary>
+    /// Libère les ressources GDI non gérées (objets <see cref="Font"/>)
+    /// allouées dans <c>SetupUI</c> et les helpers.
+    /// WinForms ne dispose pas automatiquement les fonts affectées
+    /// aux propriétés <c>.Font</c> lorsqu'elles ont été créées en dehors
+    /// du Designer généré — il faut les libérer explicitement.
+    /// </summary>
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            lblHeader.Font?.Dispose();
+            btnSave.Font?.Dispose();
+            btnAdd.Font?.Dispose();
+            btnRemove.Font?.Dispose();
+            lstPresets.Font?.Dispose();
+
+            foreach (var tb in new[] { txtName, txtServer, txtPort, txtChannels })
+                tb.Font?.Dispose();
+
+            cbIpVersion.Font?.Dispose();
+        }
+        base.Dispose(disposing);
+    }
 }
