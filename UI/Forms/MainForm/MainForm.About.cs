@@ -1,4 +1,4 @@
-using IperfApp.UI.Forms.AboutForm;
+using IperfApp.UI.Forms;
 
 namespace IperfApp.UI.Forms.MainForm;
 
