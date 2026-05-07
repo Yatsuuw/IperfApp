@@ -17,24 +17,20 @@ public partial class Form1 : Form
     // Barre menu
     var ms = new MenuStrip { BackColor = _colorCard, Padding = new Padding(6, 4, 0, 4) };
 
-    // Entrée "Profils" avec style semi-bold
     var menuProfils = new ToolStripMenuItem("Profils") { 
       ForeColor = _colorAccent, 
       Font = new Font("Segoe UI Semibold", 9F) 
     };
     menuProfils.Click += (s, e) => OpenSettings();
 
-    // Entrée "Configuration
     var menuConfig = new ToolStripMenuItem("Configuration") { 
       ForeColor = Color.DimGray, 
       Font = new Font("Segoe UI", 9F) 
     };
     ToolStripMenuItem itemImport = new("Importer une configuration...", null, (s, e) => ImportConfiguration());
     ToolStripMenuItem itemExport = new("Exporter une configuration...", null, (s, e) => ExportConfiguration());
-
     menuConfig.DropDownItems.AddRange([itemImport, itemExport]);
 
-    // Entrée "Informations"
     var menuInfo = new ToolStripMenuItem("Informations") { 
       ForeColor = Color.DimGray, 
       Font = new Font("Segoe UI", 9F) 
@@ -71,7 +67,7 @@ public partial class Form1 : Form
     int labelW = 100, inputW = 280, gap = 15;
     int rowX = (cardW - (labelW + gap + inputW)) / 2;
 
-      // Zone des profils
+    // ── Ligne 1 : Profil ──
     var lblPreset = new Label { 
       Text = "Profil :", Top = internalTop + 3, Left = rowX, Width = labelW, 
       Font = new Font("Segoe UI Semibold", 9F), TextAlign = ContentAlignment.MiddleRight, ForeColor = _colorAccent 
@@ -80,7 +76,15 @@ public partial class Form1 : Form
       Top = internalTop, Left = rowX + labelW + gap, Width = inputW - 45, 
       DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10F) 
     };
+    pnlCard.Controls.AddRange([lblPreset, cbPresets]);
+    internalTop += 45;
 
+    // ── Champs de saisie ──
+    txtServer   = AddModernInput(pnlCard, ref internalTop, "Serveur :",  "", "Adresse du serveur", rowX, labelW, inputW, gap);
+    txtPort     = AddNumericInput(pnlCard, ref internalTop, "Port :",    "", "5201",               rowX, labelW, inputW, gap);
+    txtChannels = AddNumericInput(pnlCard, ref internalTop, "Canaux :",  "", "8",                  rowX, labelW, inputW, gap);
+
+    // ── Ligne 5 : Protocole ──
     var lblIpVersion = new Label
     {
       Text = "Protocole :", Top = internalTop + 3, Left = rowX, Width = labelW,
@@ -89,30 +93,21 @@ public partial class Form1 : Form
     };
     cbIpVersion = new ComboBox
     {
-      Top = internalTop, Left = rowX = labelW + gap, Width = inputW,
+      Top = internalTop, Left = rowX + labelW + gap, Width = inputW,
       DropDownStyle = ComboBoxStyle.DropDownList,
       Font = new Font("Segoe UI", 10F)
     };
     cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
     cbIpVersion.SelectedIndex = 0;
-
     _mainToolTip.SetToolTip(cbIpVersion, "Force le protocole IP utilisé par iperf3 (-4, -6, ou auto)");
     pnlCard.Controls.AddRange([lblIpVersion, cbIpVersion]);
     internalTop += 42;
 
-    pnlCard.Controls.AddRange([lblPreset, cbPresets, btnSettings]);
-    internalTop += 45;
-
-    // Champs de saisie
-    txtServer = AddModernInput(pnlCard, ref internalTop, "Serveur :", "", "Adresse du serveur", rowX, labelW, inputW, gap);
-    txtPort = AddNumericInput(pnlCard, ref internalTop, "Port :", "", "5201", rowX, labelW, inputW, gap);
-    txtChannels = AddNumericInput(pnlCard, ref internalTop, "Canaux :", "", "8", rowX, labelW, inputW, gap);
-
-    // Bouton d'Analyse (Recentré avec btnStart.Left)
+    // Bouton d'Analyse
     btnStart = new Button
     {
       Text = "LANCER L'ANALYSE",
-      Top = 320,
+      Top = 365,
       Width = cardW,
       Height = 50,
       BackColor = _colorAccent,
@@ -128,7 +123,7 @@ public partial class Form1 : Form
     // Console
     txtLog = new TextBox {
       Multiline = true, ReadOnly = true, ScrollBars = ScrollBars.Vertical,
-      Top = 385, Width = cardW, Height = 170,
+      Top = 430, Width = cardW, Height = 170,
       BackColor = _colorTerminal, ForeColor = Color.FromArgb(220, 220, 220),
       Font = new Font("Consolas", 9F),
       BorderStyle = BorderStyle.None,
@@ -137,16 +132,16 @@ public partial class Form1 : Form
 
     // Boutons Export
     int btnExportW = (cardW / 2) - 5;
-    btnExportNew = CreateGhostButton("Nouveau rapport", 570, startX, btnExportW);
+    btnExportNew = CreateGhostButton("Nouveau rapport", 615, startX, btnExportW);
     btnExportNew.Click += (s, e) => HandleSave(false);
 
-    btnExportAppend = CreateGhostButton("Ajouter au fichier", 570, startX + btnExportW + 10, btnExportW);
+    btnExportAppend = CreateGhostButton("Ajouter au fichier", 615, startX + btnExportW + 10, btnExportW);
     btnExportAppend.Click += (s, e) => HandleSave(true);
 
     // Infobulles
-    if (cbPresets != null) _mainToolTip.SetToolTip(cbPresets, "Sélectionnez un profil pré-enregistré.");
-    if (txtServer != null) _mainToolTip.SetToolTip(txtServer, "Adresse IP ou nom d'hôte du serveur Iperf3.");
-    if (txtPort != null) _mainToolTip.SetToolTip(txtPort, "Port de destination (souvent 5201 ou 9240).");
+    if (cbPresets   != null) _mainToolTip.SetToolTip(cbPresets,   "Sélectionnez un profil pré-enregistré.");
+    if (txtServer   != null) _mainToolTip.SetToolTip(txtServer,   "Adresse IP ou nom d'hôte du serveur Iperf3.");
+    if (txtPort     != null) _mainToolTip.SetToolTip(txtPort,     "Port de destination (souvent 5201 ou 9240).");
     if (txtChannels != null) _mainToolTip.SetToolTip(txtChannels, "Nombre de flux TCP parallèles (recommandé : 8).");
 
     Controls.AddRange([lblTitle, pnlCard, btnStart, txtLog, btnExportNew, btnExportAppend]);
