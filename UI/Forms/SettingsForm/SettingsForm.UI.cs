@@ -1,4 +1,5 @@
 using IperfApp.UI.Constants;
+using IperfApp.UI.Helpers;
 
 namespace IperfApp.UI.Forms.SettingsForm;
 
@@ -14,21 +15,20 @@ public partial class SettingsForm
         StartPosition   = FormStartPosition.CenterParent;
         MaximizeBox     = false;
 
-        // Panneau gauche : liste des profils
-        Panel pnlLeft = new()
+        // --- Panneau gauche : liste des profils ---
+        var pnlLeft = new Panel
         {
             Dock      = DockStyle.Left,
             Width     = 165,
             BackColor = AppColors.SidePanel,
             Padding   = new Padding(5)
         };
-        Panel pnlBtns = new() { Dock = DockStyle.Top, Height = 40 };
+        var pnlBtns = new Panel { Dock = DockStyle.Top, Height = 40 };
 
         ConfigureSideButton(btnAdd,    "＋", new Point(5,  5));
         ConfigureSideButton(btnRemove, "－", new Point(38, 5));
         btnAdd.Click    += (_, _) => CreateNew();
         btnRemove.Click += (_, _) => DeleteSelected();
-
         pnlBtns.Controls.AddRange([btnAdd, btnRemove]);
 
         lstPresets.Dock        = DockStyle.Fill;
@@ -37,32 +37,26 @@ public partial class SettingsForm
         lstPresets.ItemHeight  = 40;
         lstPresets.DrawMode    = DrawMode.OwnerDrawFixed;
         lstPresets.Cursor      = Cursors.Hand;
+        lstPresets.Font        = _fonts.Track(new Font("Segoe UI Semibold", 9F));
         lstPresets.DrawItem   += DrawListItem;
         lstPresets.SelectedIndexChanged += OnPresetSelectionChanged;
 
-        var lstFont = new Font("Segoe UI Semibold", 9F);
-        lstPresets.Font = lstFont;
-        _trackedFonts.Add(lstFont);
-
         pnlLeft.Controls.AddRange([lstPresets, pnlBtns]);
 
-        // Panneau droit : édition du profil sélectionné
-        Panel pnlRight = new() { Dock = DockStyle.Fill, Padding = new Padding(25, 20, 25, 20) };
+        // --- Panneau droit : édition ---
+        var pnlRight = new Panel { Dock = DockStyle.Fill, Padding = new Padding(25, 20, 25, 20) };
 
-        var headerFont = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold);
-        lblHeader.Font     = headerFont;
+        lblHeader.Font     = _fonts.Track(new Font("Segoe UI Variable Display", 14F, FontStyle.Bold));
         lblHeader.Location = new Point(25, 15);
         lblHeader.AutoSize = true;
-        _trackedFonts.Add(headerFont);
 
         int top = 65;
-        AddInputField  (pnlRight, "NOM DU SCÉNARIO", txtName,     ref top);
-        AddInputField  (pnlRight, "ADRESSE SERVEUR", txtServer,   ref top);
-        AddNumericField(pnlRight, "PORT",             txtPort,     ref top);
-        AddNumericField(pnlRight, "CANAUX",           txtChannels, ref top);
-        AddComboField  (pnlRight, "PROTOCOLE IP",     cbIpVersion, ref top);
+        FormBuilderHelpers.AddInputField  (pnlRight, "NOM DU SCÉNARIO", txtName,     ref top, _fonts);
+        FormBuilderHelpers.AddInputField  (pnlRight, "ADRESSE SERVEUR", txtServer,   ref top, _fonts);
+        FormBuilderHelpers.AddNumericField(pnlRight, "PORT",            txtPort,     ref top, _fonts);
+        FormBuilderHelpers.AddNumericField(pnlRight, "CANAUX",          txtChannels, ref top, _fonts);
+        FormBuilderHelpers.AddComboField  (pnlRight, "PROTOCOLE IP",    cbIpVersion, ref top, _fonts);
 
-        var saveFont = new Font("Segoe UI Bold", 9F);
         btnSave.Text      = "ENREGISTRER";
         btnSave.Dock      = DockStyle.Bottom;
         btnSave.Height    = 40;
@@ -70,27 +64,23 @@ public partial class SettingsForm
         btnSave.ForeColor = Color.White;
         btnSave.FlatStyle = FlatStyle.Flat;
         btnSave.Cursor    = Cursors.Hand;
-        btnSave.Font      = saveFont;
+        btnSave.Font      = _fonts.Track(new Font("Segoe UI Bold", 9F));
         btnSave.Click    += async (_, _) => await SaveDataAsync();
-        _trackedFonts.Add(saveFont);
 
         pnlRight.Controls.AddRange([lblHeader, btnSave]);
         Controls.AddRange([pnlRight, pnlLeft]);
     }
 
-    private void ConfigureSideButton(Button b, string txt, Point loc)
+    private void ConfigureSideButton(Button b, string text, Point location)
     {
-        b.Text      = txt;
+        b.Text      = text;
         b.Size      = new Size(28, 28);
-        b.Location  = loc;
+        b.Location  = location;
         b.FlatStyle = FlatStyle.Flat;
         b.FlatAppearance.BorderSize  = 1;
         b.FlatAppearance.BorderColor = Color.FromArgb(210, 210, 210);
         b.BackColor = Color.White;
         b.Cursor    = Cursors.Hand;
-
-        var f = new Font("Segoe UI", 9F, FontStyle.Bold);
-        b.Font = f;
-        _trackedFonts.Add(f);
+        b.Font      = _fonts.Track(new Font("Segoe UI", 9F, FontStyle.Bold));
     }
 }

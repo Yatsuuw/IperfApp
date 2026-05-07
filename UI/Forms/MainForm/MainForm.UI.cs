@@ -2,7 +2,7 @@ using IperfApp.UI.Constants;
 
 namespace IperfApp.UI.Forms.MainForm;
 
-public partial class MainForm : Form
+public partial class MainForm
 {
     // ---------------------------------------------------------------
     // Constantes de mise en page partagées entre les builders
@@ -11,8 +11,9 @@ public partial class MainForm : Form
     private const int CardWidth  = 460;
     private const int CardTop    = 95;
     private const int CardHeight = 255;
-    private const int CardBottom = CardTop + CardHeight;   // 350
+    private const int CardBottom = CardTop + CardHeight;  // 350
 
+    /// <summary>Position horizontale gauche de la carte, centrée dans la fenêtre.</summary>
     private int CardLeft => (ClientSize.Width - CardWidth) / 2;
 
     // ---------------------------------------------------------------
@@ -29,10 +30,14 @@ public partial class MainForm : Form
         MaximizeBox     = false;
         StartPosition   = FormStartPosition.CenterScreen;
 
+        // Capture CardLeft une seule fois : la fenêtre est FixedSingle,
+        // donc la valeur est stable pour toute la durée de vie de la form.
+        int cardLeft = CardLeft;
+
         var lblTitle = new Label
         {
             Text      = "DÉBIT RÉSEAU",
-            Font      = new Font("Segoe UI Variable Display", 16F, FontStyle.Bold),
+            Font      = _fonts.Track(new Font("Segoe UI Variable Display", 16F, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
             Location  = new Point(0, 45),
             Size      = new Size(ClientSize.Width, 35),
@@ -40,8 +45,8 @@ public partial class MainForm : Form
         };
 
         var menuStrip = BuildMenuStrip();
-        var pnlCard   = BuildConfigCard();
-        BuildActionsArea();
+        var pnlCard   = BuildConfigCard(cardLeft);
+        BuildActionsArea(cardLeft);
 
         _mainToolTip.SetToolTip(cbPresets,   "Sélectionnez un profil pré-enregistré.");
         _mainToolTip.SetToolTip(txtServer,   "Adresse IP ou nom d'hôte du serveur Iperf3.");
@@ -71,14 +76,14 @@ public partial class MainForm : Form
         var menuProfils = new ToolStripMenuItem("Profils")
         {
             ForeColor = AppColors.Accent,
-            Font      = new Font("Segoe UI Semibold", 9F)
+            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9F))
         };
         menuProfils.Click += (_, _) => OpenSettings();
 
         var menuConfig = new ToolStripMenuItem("Configuration")
         {
             ForeColor = AppColors.TextMuted,
-            Font      = new Font("Segoe UI", 9F)
+            Font      = _fonts.Track(new Font("Segoe UI", 9F))
         };
         menuConfig.DropDownItems.AddRange([
             new ToolStripMenuItem("Importer une configuration...", null, (_, _) => ImportConfiguration()),
@@ -88,7 +93,7 @@ public partial class MainForm : Form
         var menuInfo = new ToolStripMenuItem("Informations")
         {
             ForeColor = AppColors.TextMuted,
-            Font      = new Font("Segoe UI", 9F)
+            Font      = _fonts.Track(new Font("Segoe UI", 9F))
         };
         menuInfo.Click += (_, _) => ShowAboutBox();
 
