@@ -13,19 +13,31 @@
 
 .PARAMETER CertPassword
     Mot de passe du certificat PFX.
-    Si absent, la variable d'environnement IPERF_CERT_PASSWORD est utilisée.
+    RECOMMANDÉ : ne pas passer cette valeur en clair dans la ligne de commande.
+    Préférez la variable d'environnement IPERF_CERT_PASSWORD (voir .EXAMPLE).
+    Si absent et si IPERF_CERT_PASSWORD n'est pas définie, le script s'arrête.
 
 .PARAMETER Version
     Version de l'application (ex : "1.1.0"). Utilisée pour nommer le setup.
     Si absent, la version est lue automatiquement depuis IperfApp.csproj.
 
 .EXAMPLE
-    # Passer le mot de passe en paramètre
-    .\sign_github.ps1 -CertPassword "monMotDePasse"
-
-    # Ou via variable d'environnement (recommandé pour la CI)
-    $env:IPERF_CERT_PASSWORD = "monMotDePasse"
+    # Méthode recommandée : définir le mot de passe dans une variable d'environnement
+    # (ne laisse pas de trace dans l'historique PowerShell)
+    $env:IPERF_CERT_PASSWORD = Read-Host -Prompt "Mot de passe du certificat" -AsSecureString | `
+        ConvertFrom-SecureString -AsPlainText
     .\sign_github.ps1
+
+.EXAMPLE
+    # En CI/CD : définir la variable d'environnement au niveau du système
+    # ou via les secrets du pipeline (GitHub Actions, Azure DevOps, etc.)
+    # Puis lancer sans argument :
+    .\sign_github.ps1
+
+.EXAMPLE
+    # Méthode non recommandée (mot de passe visible dans l'historique) :
+    # .\sign_github.ps1 -CertPassword "<votre-mot-de-passe>"
+    # Utilisez uniquement dans un environnement totalement isolé et de confiance.
 #>
 [CmdletBinding()]
 param(
@@ -40,7 +52,7 @@ if ([string]::IsNullOrWhiteSpace($CertPassword))
   $CertPassword = $env:IPERF_CERT_PASSWORD
   if ([string]::IsNullOrWhiteSpace($CertPassword))
   {
-    Write-Error "Aucun mot de passe fourni. Utilisez -CertPassword ou définissez IPERF_CERT_PASSWORD."
+    Write-Error "Aucun mot de passe fourni. Définissez IPERF_CERT_PASSWORD ou utilisez -CertPassword (déconseillé)."
     exit 1
   }
 }
