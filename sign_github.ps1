@@ -17,7 +17,7 @@
 
 .PARAMETER Version
     Version de l'application (ex : "1.1.0"). Utilisée pour nommer le setup.
-    Défaut : "1.1.0".
+    Si absent, la version est lue automatiquement depuis IperfApp.csproj.
 
 .EXAMPLE
     # Passer le mot de passe en paramètre
@@ -31,7 +31,7 @@
 param(
   [string] $CertPath     = "signature.pfx",
   [string] $CertPassword = "",
-  [string] $Version      = "1.1.0"
+  [string] $Version      = ""
 )
 
 # Si le mot de passe n'est pas passé en paramètre, on lit la variable d'environnement
@@ -43,6 +43,25 @@ if ([string]::IsNullOrWhiteSpace($CertPassword))
     Write-Error "Aucun mot de passe fourni. Utilisez -CertPassword ou définissez IPERF_CERT_PASSWORD."
     exit 1
   }
+}
+
+# Si la version n'est pas fournie, on la lit depuis IperfApp.csproj
+if ([string]::IsNullOrWhiteSpace($Version))
+{
+  $csprojPath = Join-Path $PSScriptRoot "IperfApp.csproj"
+  if (-not (Test-Path $csprojPath))
+  {
+    Write-Error "IperfApp.csproj introuvable à '$csprojPath'. Spécifiez -Version manuellement."
+    exit 1
+  }
+  [xml]$csproj = Get-Content $csprojPath
+  $Version = $csproj.Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+  if ([string]::IsNullOrWhiteSpace($Version))
+  {
+    Write-Error "Impossible de lire la version depuis IperfApp.csproj."
+    exit 1
+  }
+  Write-Host "Version lue depuis IperfApp.csproj : $Version" -ForegroundColor DarkCyan
 }
 
 # --- Chemins ---

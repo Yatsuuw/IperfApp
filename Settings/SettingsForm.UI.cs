@@ -31,7 +31,9 @@ public partial class SettingsForm : Form
     lstPresets.DrawMode = DrawMode.OwnerDrawFixed;
     lstPresets.Cursor = Cursors.Hand;
     lstPresets.DrawItem += DrawListItem;
-    lstPresets.SelectedIndexChanged += (s, e) => LoadSelected();
+    // Abonnement via la méthode nommée uniquement — pas de lambda ici,
+    // pour permettre le désabonnement propre dans UpdateList().
+    lstPresets.SelectedIndexChanged += OnPresetSelectionChanged;
 
     pnlLeft.Controls.AddRange([lstPresets, pnlBtns]);
 
@@ -56,7 +58,7 @@ public partial class SettingsForm : Form
     btnSave.FlatStyle = FlatStyle.Flat;
     btnSave.Cursor = Cursors.Hand;
     btnSave.Font = new Font("Segoe UI Bold", 9F);
-    btnSave.Click += (s, e) => SaveData();
+    btnSave.Click += async (s, e) => await SaveDataAsync();
 
     pnlRight.Controls.AddRange([lblHeader, btnSave]);
     Controls.AddRange([pnlRight, pnlLeft]);

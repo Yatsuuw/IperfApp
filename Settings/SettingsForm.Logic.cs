@@ -33,14 +33,54 @@ public partial class SettingsForm : Form
     }
   }
 
-  private async void SaveData()
+  /// <summary>
+  /// Valide et enregistre le profil sélectionné.
+  /// Retourne <c>false</c> si la validation échoue.
+  /// </summary>
+  private async Task SaveDataAsync()
   {
     if (lstPresets.SelectedItem is not Preset p || p.Name == "Défaut") return;
 
-    p.Name   = txtName.Text;
-    p.Server = txtServer.Text;
-    _ = int.TryParse(txtPort.Text,     out int port);     p.Port     = port     > 0 ? port     : 5201;
-    _ = int.TryParse(txtChannels.Text, out int channels); p.Channels = channels > 0 ? channels : 8;
+    // --- Validation ---
+    string name = txtName.Text.Trim();
+    if (string.IsNullOrWhiteSpace(name))
+    {
+      MessageBox.Show("Le nom du scénario ne peut pas être vide.", "Validation",
+        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      txtName.Focus();
+      return;
+    }
+
+    string server = txtServer.Text.Trim();
+    if (string.IsNullOrWhiteSpace(server))
+    {
+      MessageBox.Show("L'adresse du serveur ne peut pas être vide.", "Validation",
+        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      txtServer.Focus();
+      return;
+    }
+
+    if (!int.TryParse(txtPort.Text, out int port) || port < 1 || port > 65535)
+    {
+      MessageBox.Show("Le port doit être un entier compris entre 1 et 65535.", "Validation",
+        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      txtPort.Focus();
+      return;
+    }
+
+    if (!int.TryParse(txtChannels.Text, out int channels) || channels < 1)
+    {
+      MessageBox.Show("Le nombre de canaux doit être un entier supérieur ou égal à 1.", "Validation",
+        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+      txtChannels.Focus();
+      return;
+    }
+
+    // --- Mise à jour du modèle ---
+    p.Name      = name;
+    p.Server    = server;
+    p.Port      = port;
+    p.Channels  = channels;
     p.IpVersion = cbIpVersion.SelectedIndex switch
     {
       1 => IpVersion.IPv4,
@@ -54,17 +94,32 @@ public partial class SettingsForm : Form
     UpdateList();
     lstPresets.SelectedIndex = currentIndex;
 
-    string oldTxt = btnSave.Text; Color oldCol = btnSave.BackColor;
-    btnSave.Text = "✓ ENREGISTRÉ"; btnSave.BackColor = Color.FromArgb(40, 167, 100);
+    // --- Feedback visuel ---
+    string oldTxt = btnSave.Text;
+    Color  oldCol = btnSave.BackColor;
+    btnSave.Text      = "✓ ENREGISTRÉ";
+    btnSave.BackColor = Color.FromArgb(40, 167, 100);
     await Task.Delay(1000);
-    btnSave.Text = oldTxt; btnSave.BackColor = oldCol;
+    btnSave.Text      = oldTxt;
+    btnSave.BackColor = oldCol;
   }
 
   private void CreateNew()
   {
-    var newP = new Preset { Name = "Nouveau profil", Server = "0.0.0.0", Port = 5201, Channels = 8, IpVersion = IpVersion.Auto };
+    var newP = new Preset
+    {
+      Name      = "Nouveau profil",
+      Server    = "",          // vide : l'utilisateur doit saisir l'adresse
+      Port      = 5201,
+      Channels  = 8,
+      IpVersion = IpVersion.Auto
+    };
     _data.Presets.Add(newP);
     UpdateList(newP.Name);
+    SetLockedState(false);
+    lblHeader.Text    = "Modification";
+    btnRemove.Enabled = true;
+    btnSave.Enabled   = true;
     txtName.Focus();
     txtName.SelectAll();
   }
