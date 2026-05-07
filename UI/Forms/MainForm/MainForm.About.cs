@@ -1,5 +1,3 @@
-using IperfApp.UI.Forms.AboutForm;
-
 namespace IperfApp.UI.Forms.MainForm;
 
 public partial class MainForm
@@ -7,8 +5,8 @@ public partial class MainForm
     /// <summary>Ouvre la boîte de dialogue « Informations ».</summary>
     private void ShowAboutBox()
     {
-        // L'icône peut être null si le chargement a échoué au démarrage — AboutForm gère ce cas.
-        using var about = new AboutForm(Icon);
+        // Nom qualifié complet pour éviter l'ambiguïté entre le namespace et la classe AboutForm.
+        using var about = new IperfApp.UI.Forms.AboutForm.AboutForm(Icon);
         about.ShowDialog(this);
     }
 }
