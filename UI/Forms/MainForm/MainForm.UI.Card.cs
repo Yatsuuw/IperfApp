@@ -4,12 +4,17 @@ namespace IperfApp.UI.Forms.MainForm;
 
 public partial class MainForm
 {
+    // ---------------------------------------------------------------
+    // Constantes de mise en page de la carte
+    // ---------------------------------------------------------------
+    private const int RowLabelW  = 90;   // largeur du label à gauche
+    private const int RowInputW  = 290;  // largeur du champ / combo
+    private const int RowGap     = 10;   // espace label → champ
+    private const int RowPaddingL = 30;  // marge gauche de la carte
+
     /// <summary>
     /// Construit la carte de configuration centrale.
-    /// Utilise un système de positionnement centré propre à la MainForm,
-    /// indépendant de <c>FormBuilderHelpers</c> (prévu pour les panneaux full-width).
-    /// <paramref name="cardLeft"/> est fourni par <c>SetupModernUI</c> pour garantir
-    /// la cohérence de position entre la carte et la zone d'actions.
+    /// Chaque ligne est alignée : label (droite) | champ (gauche) sur la même baseline.
     /// </summary>
     private Panel BuildConfigCard(int cardLeft)
     {
@@ -22,113 +27,77 @@ public partial class MainForm
 
         pnlCard.Paint += (_, e) =>
             ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle,
-                Color.FromArgb(230, 235, 240), ButtonBorderStyle.Solid);
+                Color.FromArgb(220, 225, 232), ButtonBorderStyle.Solid);
 
-        // --- Constantes de layout ---
-        const int labelW  = 100;
-        const int inputW  = 260;
-        const int gap     = 15;
-        int       rowX    = (CardWidth - (labelW + gap + inputW)) / 2;
-        int       top     = 18;
+        int top = 18;
 
         // ---- Ligne : Profil ----
-        var lblPreset = new Label
-        {
-            Text      = "Profil :",
-            Top       = top + 3,
-            Left      = rowX,
-            Width     = labelW,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9F)),
-            TextAlign = ContentAlignment.MiddleRight,
-            ForeColor = AppColors.Accent
-        };
-        cbPresets = new ComboBox
-        {
-            Top           = top,
-            Left          = rowX + labelW + gap,
-            Width         = inputW,
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Font          = _fonts.Track(new Font("Segoe UI", 10F))
-        };
-        pnlCard.Controls.AddRange([lblPreset, cbPresets]);
-        top += 44;
+        AddCardComboRow(pnlCard, "Profil", ref cbPresets, ref top, isPreset: true);
 
-        // ---- Ligne : Serveur ----
-        AddCardRow(pnlCard, "Serveur :",  ref txtServer,   isNumeric: false, ref top, rowX, labelW, inputW, gap);
-        // ---- Ligne : Port ----
-        AddCardRow(pnlCard, "Port :",     ref txtPort,     isNumeric: true,  ref top, rowX, labelW, inputW, gap);
-        // ---- Ligne : Canaux ----
-        AddCardRow(pnlCard, "Canaux :",   ref txtChannels, isNumeric: true,  ref top, rowX, labelW, inputW, gap);
+        // ---- Lignes texte / numérique ----
+        AddCardTextRow(pnlCard, "Serveur",  ref txtServer,   isNumeric: false, ref top);
+        AddCardTextRow(pnlCard, "Port",     ref txtPort,     isNumeric: true,  ref top);
+        AddCardTextRow(pnlCard, "Canaux",   ref txtChannels, isNumeric: true,  ref top);
 
         // ---- Ligne : Protocole IP ----
-        var lblIpVersion = new Label
-        {
-            Text      = "Protocole :",
-            Top       = top + 5,
-            Left      = rowX,
-            Width     = labelW,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9F)),
-            TextAlign = ContentAlignment.MiddleRight,
-            ForeColor = Color.DimGray
-        };
-        cbIpVersion = new ComboBox
-        {
-            Top           = top + 2,
-            Left          = rowX + labelW + gap,
-            Width         = inputW,
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Font          = _fonts.Track(new Font("Segoe UI", 10F))
-        };
+        AddCardComboRow(pnlCard, "Protocole", ref cbIpVersion, ref top, isPreset: false);
         cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cbIpVersion.SelectedIndex = 0;
-        _mainToolTip.SetToolTip(cbIpVersion, "Force le protocole IP utilisé par iperf3 (-4, -6, ou auto)");
-        pnlCard.Controls.AddRange([lblIpVersion, cbIpVersion]);
+        _mainToolTip.SetToolTip(cbIpVersion,
+            "Force le protocole IP utilisé par iperf3 (-4, -6, ou auto)");
 
         return pnlCard;
     }
 
     // ---------------------------------------------------------------
-    // Helper privé : une ligne label + champ texte + soulignement
+    // Helpers privés
     // ---------------------------------------------------------------
 
     /// <summary>
-    /// Ajoute une ligne (label + TextBox + soulignement coloré) dans la carte.
-    /// Utilise le même positionnement centré que les autres lignes de la carte.
+    /// Ligne : label de texte + TextBox + soulignement.
+    /// Label et champ sont sur la même ligne, verticalement centrés.
     /// </summary>
-    private void AddCardRow(
-        Panel card,
-        string label,
+    private void AddCardTextRow(
+        Panel card, string label,
         ref TextBox field,
-        bool   isNumeric,
-        ref int top,
-        int rowX, int labelW, int inputW, int gap)
+        bool isNumeric,
+        ref int top)
     {
+        const int rowH    = 26;   // hauteur utile de la ligne
+        const int lineGap = 3;    // espace entre le bas du champ et la ligne
+        const int rowStep = 54;   // pas vertical total entre deux lignes
+
+        // Label
         var lbl = new Label
         {
-            Text      = label,
+            Text      = label + " :",
+            Left      = RowPaddingL,
             Top       = top,
-            Left      = rowX,
-            Width     = labelW,
-            Height    = 18,
-            Font      = _fonts.Track(new Font("Segoe UI", 7.5F, FontStyle.Bold)),
-            TextAlign = ContentAlignment.MiddleRight,
-            ForeColor = AppColors.Accent
+            Width     = RowLabelW,
+            Height    = rowH,
+            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
+            ForeColor = AppColors.Accent,
+            TextAlign = ContentAlignment.MiddleRight
         };
 
+        // Champ
         field = new TextBox
         {
-            Top         = top + 20,
-            Left        = rowX + labelW + gap,
-            Width       = inputW,
-            Font        = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
-            BorderStyle = BorderStyle.None
+            Left        = RowPaddingL + RowLabelW + RowGap,
+            Top         = top + (rowH - 18) / 2,   // centré verticallement avec le label
+            Width       = RowInputW,
+            Height      = 20,
+            Font        = _fonts.Track(new Font("Segoe UI", 10.5F)),
+            BorderStyle = BorderStyle.None,
+            ForeColor   = Color.FromArgb(30, 30, 30)
         };
 
+        // Soulignement
         var line = new Panel
         {
-            Top       = field.Bottom + 3,
-            Left      = rowX + labelW + gap,
-            Width     = inputW,
+            Left      = field.Left,
+            Top       = field.Bottom + lineGap,
+            Width     = RowInputW,
             Height    = 1,
             BackColor = AppColors.FieldBorder
         };
@@ -146,6 +115,46 @@ public partial class MainForm
         field.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
 
         card.Controls.AddRange([lbl, field, line]);
-        top += 48;
+        top += rowStep;
+    }
+
+    /// <summary>
+    /// Ligne : label + ComboBox.
+    /// <paramref name="isPreset"/> = true pour le ComboBox des profils
+    /// (plus large, sans items pré-remplis).
+    /// </summary>
+    private void AddCardComboRow(
+        Panel card, string label,
+        ref ComboBox combo,
+        ref int top,
+        bool isPreset)
+    {
+        const int rowH    = 26;
+        const int rowStep = 50;
+
+        var lbl = new Label
+        {
+            Text      = label + " :",
+            Left      = RowPaddingL,
+            Top       = top,
+            Width     = RowLabelW,
+            Height    = rowH,
+            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
+            ForeColor = isPreset ? AppColors.Accent : Color.DimGray,
+            TextAlign = ContentAlignment.MiddleRight
+        };
+
+        combo = new ComboBox
+        {
+            Left          = RowPaddingL + RowLabelW + RowGap,
+            Top           = top + (rowH - 22) / 2,
+            Width         = RowInputW,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font          = _fonts.Track(new Font("Segoe UI", 10F)),
+            FlatStyle     = FlatStyle.Flat
+        };
+
+        card.Controls.AddRange([lbl, combo]);
+        top += rowStep;
     }
 }

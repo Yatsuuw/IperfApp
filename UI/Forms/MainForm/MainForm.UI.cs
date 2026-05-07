@@ -8,10 +8,10 @@ public partial class MainForm
     // Constantes de mise en page partagées entre les builders
     // ---------------------------------------------------------------
 
-    private const int CardWidth  = 460;
-    private const int CardTop    = 95;
-    private const int CardHeight = 255;
-    private const int CardBottom = CardTop + CardHeight;  // 350
+    private const int CardWidth  = 480;
+    private const int CardTop    = 100;
+    private const int CardHeight = 295;
+    private const int CardBottom = CardTop + CardHeight;  // 395
 
     /// <summary>Position horizontale gauche de la carte, centrée dans la fenêtre.</summary>
     private int CardLeft => (ClientSize.Width - CardWidth) / 2;
@@ -24,7 +24,7 @@ public partial class MainForm
     private void SetupModernUI()
     {
         Text            = " Speedtest Iperf";
-        Size            = new Size(580, 760);
+        Size            = new Size(600, 800);
         BackColor       = AppColors.Background;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox     = false;
@@ -37,10 +37,10 @@ public partial class MainForm
         var lblTitle = new Label
         {
             Text      = "DÉBIT RÉSEAU",
-            Font      = _fonts.Track(new Font("Segoe UI Variable Display", 16F, FontStyle.Bold)),
+            Font      = _fonts.Track(new Font("Segoe UI Variable Display", 18F, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
-            Location  = new Point(0, 45),
-            Size      = new Size(ClientSize.Width, 35),
+            Location  = new Point(0, 48),
+            Size      = new Size(ClientSize.Width, 40),
             TextAlign = ContentAlignment.MiddleCenter
         };
 

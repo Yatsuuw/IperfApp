@@ -11,15 +11,15 @@ public partial class MainForm
     /// </summary>
     private void BuildActionsArea(int cardLeft)
     {
-        const int spacer     = 15;
-        const int btnMainH   = 50;
-        const int btnCancelH = 30;
-        const int logH       = 170;
+        const int spacer   = 14;
+        const int btnMainH = 52;
+        const int btnCancelH = 32;
+        const int logH     = 180;
 
         int topStart  = CardBottom + spacer;
-        int topCancel = topStart  + btnMainH   + (spacer / 3);
+        int topCancel = topStart  + btnMainH   + 6;
         int topLog    = topCancel + btnCancelH + spacer;
-        int topExport = topLog   + logH        + (spacer / 3);
+        int topExport = topLog    + logH       + 8;
         int btnHalfW  = (CardWidth / 2) - 5;
 
         // --- Bouton Lancer ---
@@ -33,7 +33,7 @@ public partial class MainForm
             BackColor = AppColors.Accent,
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 11F, FontStyle.Bold)),
+            Font      = _fonts.Track(new Font("Segoe UI Semibold", 11.5F, FontStyle.Bold)),
             Cursor    = Cursors.Hand
         };
         btnStart.FlatAppearance.BorderSize = 0;
@@ -50,7 +50,7 @@ public partial class MainForm
             BackColor = AppColors.Danger,
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9F)),
+            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
             Cursor    = Cursors.Hand,
             Enabled   = false
         };
@@ -78,8 +78,8 @@ public partial class MainForm
         };
 
         // --- Boutons Export CSV ---
-        btnExportNew    = CreateGhostButton("Nouveau rapport",    topExport, cardLeft,                  btnHalfW);
-        btnExportAppend = CreateGhostButton("Ajouter au fichier", topExport, cardLeft + btnHalfW + 10,  btnHalfW);
+        btnExportNew    = CreateGhostButton("Nouveau rapport",    topExport, cardLeft,                 btnHalfW);
+        btnExportAppend = CreateGhostButton("Ajouter au fichier", topExport, cardLeft + btnHalfW + 10, btnHalfW);
         btnExportNew.Click    += (_, _) => HandleSave(false);
         btnExportAppend.Click += (_, _) => HandleSave(true);
     }
