@@ -7,6 +7,7 @@ public partial class SettingsForm : Form
   private readonly ConfigData _data;
   private readonly ListBox lstPresets = new();
   private readonly TextBox txtName = new(), txtServer = new(), txtPort = new(), txtChannels = new();
+  private readonly ComboBox cbIpVersion = new();
   private readonly Button btnAdd = new(), btnRemove = new(), btnSave = new();
   private readonly Label lblHeader = new();
 

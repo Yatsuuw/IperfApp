@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using IperfApp.Models;
 
 namespace IperfApp.UI;
 
@@ -7,7 +8,7 @@ public partial class SettingsForm : Form
   private static void AddInputField(Panel p, string label, TextBox tb, ref int top)
   {
     Label lbl = new() { Text = label, Top = top, Left = 25, Font = new Font("Segoe UI", 7F, FontStyle.Bold), ForeColor = Color.FromArgb(0, 103, 192), AutoSize = true };
-    tb.Top = top + 18; tb.Left = 25; tb.Width = 260; 
+    tb.Top = top + 18; tb.Left = 25; tb.Width = 260;
     tb.Font = new Font("Segoe UI Semibold", 9.5F); tb.BorderStyle = BorderStyle.None;
     Panel line = new() { Top = tb.Bottom + 4, Left = 25, Width = 260, Height = 1, BackColor = Color.FromArgb(210, 212, 215) };
     tb.Enter += (s, e) => line.BackColor = Color.FromArgb(0, 120, 215);
@@ -19,16 +20,27 @@ public partial class SettingsForm : Form
   private static void AddNumericField(Panel p, string label, TextBox tb, ref int top)
   {
     AddInputField(p, label, tb, ref top);
-
-    // Validation : accepter seulement les chiffres
     tb.KeyPress += (s, e) =>
     {
-      // Accepter les chiffres et les touches de contrôle (backspace, suppression, etc)
       if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
-      {
         e.Handled = true;
-      }
     };
+  }
+
+  private static void AddComboField(Panel p, string label, ComboBox cb, ref int top)
+  {
+    Label lbl = new() { Text = label, Top = top, Left = 25, Font = new Font("Segoe UI", 7F, FontStyle.Bold), ForeColor = Color.FromArgb(0, 103, 192), AutoSize = true };
+    cb.Top = top + 18; cb.Left = 25; cb.Width = 260;
+    cb.Font = new Font("Segoe UI Semibold", 9.5F);
+    cb.DropDownStyle = ComboBoxStyle.DropDownList;
+    cb.FlatStyle = FlatStyle.Flat;
+    cb.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
+    cb.SelectedIndex = 0;
+    Panel line = new() { Top = cb.Bottom + 4, Left = 25, Width = 260, Height = 1, BackColor = Color.FromArgb(210, 212, 215) };
+    cb.Enter += (s, e) => line.BackColor = Color.FromArgb(0, 120, 215);
+    cb.Leave += (s, e) => line.BackColor = Color.FromArgb(210, 212, 215);
+    p.Controls.AddRange([lbl, cb, line]);
+    top += 55;
   }
 
   private void DrawListItem(object? sender, DrawItemEventArgs e)
@@ -39,8 +51,8 @@ public partial class SettingsForm : Form
     e.Graphics.FillRectangle(new SolidBrush(isSelected ? Color.FromArgb(0, 120, 215) : lstPresets.BackColor), e.Bounds);
 
     if (!isSelected) {
-      using Pen p = new(Color.FromArgb(225, 228, 232), 1);
-      e.Graphics.DrawLine(p, e.Bounds.Left + 10, e.Bounds.Bottom - 1, e.Bounds.Right - 10, e.Bounds.Bottom - 1);
+      using Pen pen = new(Color.FromArgb(225, 228, 232), 1);
+      e.Graphics.DrawLine(pen, e.Bounds.Left + 10, e.Bounds.Bottom - 1, e.Bounds.Right - 10, e.Bounds.Bottom - 1);
     }
 
     string profileName = _data.Presets[e.Index]?.Name ?? "Inconnu";
@@ -55,16 +67,13 @@ public partial class SettingsForm : Form
 
   private void SetLockedState(bool locked)
   {
-    // ReadOnly à tous les champs
     txtName.ReadOnly = txtServer.ReadOnly = txtPort.ReadOnly = txtChannels.ReadOnly = locked;
+    cbIpVersion.Enabled = !locked;
 
-    // Définition des couleurs (Gris si verrouillé, Blanc/Noir si modifiable)
     Color bg = locked ? Color.FromArgb(248, 248, 248) : Color.White;
     Color fg = locked ? Color.FromArgb(160, 160, 160) : Color.Black;
 
-    // Application groupée aux 4 champs
-    var fields = new[] { txtName, txtServer, txtPort, txtChannels };
-    foreach (var field in fields)
+    foreach (var field in new TextBox[] { txtName, txtServer, txtPort, txtChannels })
     {
       field.BackColor = bg;
       field.ForeColor = fg;
