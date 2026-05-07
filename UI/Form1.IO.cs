@@ -13,9 +13,7 @@ public partial class Form1
     RefreshPresetList();
   }
 
-  /// <summary>
-  /// Exporte le dernier résultat vers un fichier CSV.
-  /// </summary>
+  /// <summary>Exporte le dernier résultat vers un fichier CSV.</summary>
   /// <param name="append">Si <c>true</c>, ajoute au fichier existant ; sinon crée un nouveau.</param>
   private void HandleSave(bool append)
   {
@@ -36,8 +34,7 @@ public partial class Form1
 
     try
     {
-      var preset = BuildCurrentPreset();
-      CsvExporter.Save(fd.FileName, _lastResult, preset, append);
+      CsvExporter.Save(fd.FileName, _lastResult, BuildCurrentPreset(), append);
       MessageBox.Show("Export réussi !", "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
     catch (Exception ex)
@@ -102,12 +99,8 @@ public partial class Form1
 
     try
     {
-      // Sérialisation directe depuis la mémoire vers le fichier d'export—
-      // sans toucher à config.json (plus de Save() parasite).
-      var opts = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-      File.WriteAllText(sfd.FileName,
-        System.Text.Json.JsonSerializer.Serialize(_config, opts));
-
+      // Délègue à JsonExporter — aucun contact avec config.json
+      JsonExporter.SaveToFile(sfd.FileName, _config);
       MessageBox.Show("Exportation terminée !", "Succès",
         MessageBoxButtons.OK, MessageBoxIcon.Information);
     }

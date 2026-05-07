@@ -6,22 +6,16 @@ namespace IperfApp.Services;
 /// <summary>Gestion de la persistance de la configuration (config.json).</summary>
 public static class ConfigService
 {
-  private static readonly JsonSerializerOptions _jsonOpts = new() { WriteIndented = true };
-
   /// <summary>
   /// Chemin absolu vers config.json, calculé une seule fois au démarrage.
-  /// Invariant pendant toute la durée de vie du processus.
   /// </summary>
   private static readonly string ConfigPath =
     Path.Combine(AppContext.BaseDirectory, "config.json");
 
   /// <summary>
   /// Valide et désérialise un JSON de configuration.
-  /// Retourne <c>true</c> si le JSON est valide ; <c>false</c> avec un message explicite sinon.
+  /// Retourne <c>true</c> si valide, <c>false</c> avec un message explicite sinon.
   /// </summary>
-  /// <param name="json">Contenu JSON à valider.</param>
-  /// <param name="data">Données désérialisées si succès, sinon <c>null</c>.</param>
-  /// <param name="errorMessage">Message d'erreur lisible si échec, sinon vide.</param>
   public static bool TryParse(string json, out ConfigData? data, out string errorMessage)
   {
     data = null;
@@ -31,10 +25,7 @@ public static class ConfigService
     {
       data = JsonSerializer.Deserialize<ConfigData>(json);
       if (data is null)
-      {
-        errorMessage = "La désérialisation a produit un résultat nul.";
-        return false;
-      }
+      { errorMessage = "La désérialisation a produit un résultat nul."; return false; }
 
       if (data.Presets is null || data.Presets.Count == 0)
       { errorMessage = "La liste 'Presets' est absente ou vide."; return false; }
@@ -83,17 +74,12 @@ public static class ConfigService
     }
   }
 
-  /// <summary>Sauvegarde la configuration sur le disque.</summary>
-  /// <param name="data">Données à persister (ne doit pas être null).</param>
+  /// <summary>Sauvegarde la configuration sur le disque via <see cref="JsonExporter"/>.</summary>
   public static void Save(ConfigData data)
   {
     ArgumentNullException.ThrowIfNull(data);
-    File.WriteAllText(ConfigPath, JsonSerializer.Serialize(data, _jsonOpts));
+    JsonExporter.SaveToFile(ConfigPath, data);
   }
-
-  // ---------------------------------------------------------------
-  // Privé
-  // ---------------------------------------------------------------
 
   private static ConfigData CreateAndSaveDefault()
   {
