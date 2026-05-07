@@ -5,28 +5,19 @@ namespace IperfApp.UI.Helpers;
 /// <summary>
 /// Helpers de construction de formulaires WinForms partagés entre
 /// <c>MainForm</c> et <c>SettingsForm</c>.
-/// <para>
-/// Chaque méthode crée les contrôles et enregistre les <see cref="Font"/>
-/// allouées dans le <see cref="FontTracker"/> fourni.
-/// </para>
 /// </summary>
 internal static class FormBuilderHelpers
 {
-    /// <summary>
-    /// Ajoute un champ texte avec son label et une ligne de soulignement colorée
-    /// dans le panneau <paramref name="panel"/>.
-    /// </summary>
     public static TextBox AddInputField(
         Panel panel, string label, TextBox tb,
         ref int top, FontTracker fonts)
     {
-        var fLbl = fonts.Track(new Font("Segoe UI", 7F, FontStyle.Bold));
-        var lbl  = new Label
+        var lbl = new Label
         {
             Text      = label,
             Top       = top,
             Left      = 25,
-            Font      = fLbl,
+            Font      = fonts.Track(new Font("Segoe UI", 7F, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
             AutoSize  = true
         };
@@ -54,10 +45,6 @@ internal static class FormBuilderHelpers
         return tb;
     }
 
-    /// <summary>
-    /// Identique à <see cref="AddInputField"/> avec un filtre numérique
-    /// sur <c>KeyPress</c> (chiffres uniquement).
-    /// </summary>
     public static TextBox AddNumericField(
         Panel panel, string label, TextBox tb,
         ref int top, FontTracker fonts)
@@ -71,22 +58,16 @@ internal static class FormBuilderHelpers
         return tb;
     }
 
-    /// <summary>
-    /// Ajoute un <see cref="ComboBox"/> avec son label et une ligne de soulignement
-    /// dans le panneau <paramref name="panel"/>.
-    /// Les items « Auto / IPv4 / IPv6 » sont ajoutés automatiquement.
-    /// </summary>
     public static ComboBox AddComboField(
         Panel panel, string label, ComboBox cb,
         ref int top, FontTracker fonts)
     {
-        var fLbl = fonts.Track(new Font("Segoe UI", 7F, FontStyle.Bold));
-        var lbl  = new Label
+        var lbl = new Label
         {
             Text      = label,
             Top       = top,
             Left      = 25,
-            Font      = fLbl,
+            Font      = fonts.Track(new Font("Segoe UI", 7F, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
             AutoSize  = true
         };
@@ -96,7 +77,7 @@ internal static class FormBuilderHelpers
         cb.Width         = 260;
         cb.Font          = fonts.Track(new Font("Segoe UI Semibold", 9.5F));
         cb.DropDownStyle = ComboBoxStyle.DropDownList;
-        cb.FlatStyle     = FlatStyle.Flat;
+        cb.FlatStyle     = FlatStyle.Standard;   // Standard = bordure + flèche natives
         cb.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cb.SelectedIndex = 0;
 
