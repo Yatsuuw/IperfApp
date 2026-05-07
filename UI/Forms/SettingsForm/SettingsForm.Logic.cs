@@ -76,6 +76,10 @@ public partial class SettingsForm
 
         _data.Presets.Remove(p);
 
+        // Si le profil supprimé était le sélectionné, basculer sur le premier disponible
+        if (_data.SelectedPresetName == p.Name)
+            _data.SelectedPresetName = _data.Presets.FirstOrDefault()?.Name ?? string.Empty;
+
         try
         {
             ConfigService.Save(_data);
@@ -98,7 +102,6 @@ public partial class SettingsForm
     {
         if (lstPresets.SelectedItem is not Preset current) return;
 
-        // --- Lecture et validation des champs ---
         string name   = txtName.Text.Trim();
         string server = txtServer.Text.Trim();
 
@@ -134,12 +137,14 @@ public partial class SettingsForm
             return;
         }
 
-        // --- Mise à jour du modèle ---
         int index = _data.Presets.IndexOf(current);
         if (index >= 0)
             _data.Presets[index] = updated;
 
-        // --- Sauvegarde ---
+        // Mettre à jour SelectedPresetName si le nom a changé
+        if (_data.SelectedPresetName == current.Name)
+            _data.SelectedPresetName = updated.Name;
+
         try
         {
             ConfigService.Save(_data);
@@ -151,7 +156,7 @@ public partial class SettingsForm
             return;
         }
 
-        // --- Feedback visuel ---
+        // Feedback visuel
         var originalColor = btnSave.BackColor;
         btnSave.Text      = "✓ Enregistré";
         btnSave.BackColor = IperfApp.UI.Constants.AppColors.Success;

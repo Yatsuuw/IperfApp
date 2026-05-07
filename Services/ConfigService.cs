@@ -36,27 +36,10 @@ public static class ConfigService
 
             foreach (var p in data.Presets)
             {
-                if (string.IsNullOrWhiteSpace(p.Name))
+                string? validationError = p.Validate();
+                if (validationError is not null)
                 {
-                    errorMessage = "Un profil possède un nom vide.";
-                    return false;
-                }
-
-                if (string.IsNullOrWhiteSpace(p.Server))
-                {
-                    errorMessage = $"Le serveur du profil '{p.Name}' est vide.";
-                    return false;
-                }
-
-                if (p.Port is < 1 or > 65535)
-                {
-                    errorMessage = $"Port invalide ({p.Port}) dans '{p.Name}'.";
-                    return false;
-                }
-
-                if (p.Channels is < 1 or > 128)
-                {
-                    errorMessage = $"Nombre de canaux invalide ({p.Channels}) dans '{p.Name}' — doit être compris entre 1 et 128.";
+                    errorMessage = $"Profil '{p.Name}' invalide : {validationError}";
                     return false;
                 }
             }
@@ -85,15 +68,13 @@ public static class ConfigService
             if (TryParse(json, out ConfigData? data, out string parseError))
                 return data!;
 
-            // Le fichier existe mais son contenu est invalide : on le remplace par le défaut.
-            System.Diagnostics.Debug.WriteLine(
+            Debug.WriteLine(
                 $"[ConfigService] config.json invalide ({parseError}), réinitialisation au défaut.");
             return CreateAndSaveDefault();
         }
         catch (Exception ex)
         {
-            // Erreur disque (permissions, fichier verrouillé…) : on trace et on utilise le défaut en mémoire.
-            System.Diagnostics.Debug.WriteLine(
+            Debug.WriteLine(
                 $"[ConfigService] Impossible de lire config.json : {ex.Message}");
             return CreateDefault();
         }
@@ -109,7 +90,9 @@ public static class ConfigService
         JsonExporter.SaveToFile(ConfigPath, data);
     }
 
-    // --- Privé ---
+    // ---------------------------------------------------------------
+    // Privé
+    // ---------------------------------------------------------------
 
     private static ConfigData CreateDefault()
     {
@@ -119,7 +102,8 @@ public static class ConfigService
             Name     = "Défaut",
             Server   = "poi.cubic.iperf.bytel.fr",
             Port     = 9240,
-            Channels = 8
+            Channels = 8,
+            Duration = 10
         });
         return data;
     }
@@ -130,7 +114,7 @@ public static class ConfigService
         try   { Save(data); }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(
+            Debug.WriteLine(
                 $"[ConfigService] Impossible d'écrire config.json par défaut : {ex.Message}");
         }
         return data;

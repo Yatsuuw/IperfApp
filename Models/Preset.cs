@@ -24,14 +24,18 @@ public class Preset
     /// <inheritdoc/>
     public override string ToString() => Name;
 
-    /// <summary>Valide les champs obligatoires ; retourne un message d'erreur ou <c>null</c> si valide.</summary>
+    /// <summary>
+    /// Valide tous les champs du profil.
+    /// Retourne un message d'erreur localisé, ou <c>null</c> si le profil est valide.
+    /// </summary>
     public string? Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))   return "Le nom du profil est obligatoire.";
         if (string.IsNullOrWhiteSpace(Server)) return "L'adresse du serveur est obligatoire.";
-        if (Port     is < 1 or > 65535)        return $"Port invalide ({Port}) — doit être compris entre 1 et 65 535.";
+        if (Port     is < 1 or > 65535)        return $"Port invalide ({Port}) — doit être compris entre 1 et 65 535.";
         if (Channels is < 1 or > 128)          return $"Canaux invalides ({Channels}) — doit être compris entre 1 et 128.";
         if (Duration is < 1 or > 120)          return $"Durée invalide ({Duration}) — doit être comprise entre 1 et 120 s.";
+        if (!Enum.IsDefined(IpVersion))         return $"Version IP invalide ({(int)IpVersion}).";
         return null;
     }
 }

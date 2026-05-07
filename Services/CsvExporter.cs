@@ -1,4 +1,3 @@
-using System.Text;
 using IperfApp.Models;
 
 namespace IperfApp.Services;
@@ -6,34 +5,35 @@ namespace IperfApp.Services;
 /// <summary>Exporte les résultats d'un test de débit au format CSV.</summary>
 public static class CsvExporter
 {
-    /// <summary>Séparateur de colonnes. Modifiez cette constante pour changer le format CSV.</summary>
     private const string Separator = ";";
 
     /// <summary>
-    /// Encodage UTF-8 avec BOM : permet à Excel (Windows) de détecter
-    /// automatiquement l'encodage sans étape d'importation manuelle.
+    /// UTF-8 avec BOM : permet à Excel (Windows) de détecter l'encodage automatiquement.
     /// </summary>
-    private static readonly Encoding CsvEncoding =
-        new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+    private static readonly System.Text.Encoding CsvEncoding =
+        new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
+    /// <summary>En-tête CSV — calculé une seule fois.</summary>
     private static readonly string Header =
-        string.Join(Separator,
-            "Date", "Heure", "Serveur", "Port", "Canaux", "Upload_Mbps", "Download_Mbps");
+        string.Join(Separator, "Date", "Heure", "Serveur", "Port", "Canaux", "Upload_Mbps", "Download_Mbps");
 
     /// <summary>
     /// Enregistre un résultat dans un fichier CSV.
     /// </summary>
     /// <param name="path">Chemin complet du fichier de destination.</param>
     /// <param name="result">Résultat du test à exporter.</param>
-    /// <param name="preset">Profil utilisé pour le test (serveur, port, canaux).</param>
+    /// <param name="preset">Profil utilisé pour le test.</param>
     /// <param name="append">
-    ///   Si <c>true</c>, ajoute une ligne à la fin du fichier existant
-    ///   (sans réécrire l'en-tête s'il est déjà présent).
-    ///   Si <c>false</c>, écrase le fichier.
+    ///   <c>true</c> → ajoute une ligne (sans réécrire l'en-tête si déjà présent).
+    ///   <c>false</c> → écrase le fichier.
     /// </param>
     /// <exception cref="IOException">Propagée à l'appelant si l'écriture échoue.</exception>
     public static void Save(string path, TestResult result, Preset preset, bool append)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(result);
+        ArgumentNullException.ThrowIfNull(preset);
+
         bool fileExists = File.Exists(path) && new FileInfo(path).Length > 0;
         bool needHeader = !append || !fileExists;
 

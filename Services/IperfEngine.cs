@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using IperfApp.Models;
 
 namespace IperfApp.Services;
@@ -10,12 +10,18 @@ namespace IperfApp.Services;
 /// </summary>
 public sealed class IperfEngine : IDisposable
 {
+    // Regex compilé une seule fois pour toute la durée de vie de l'application.
+    private static readonly Regex BitrateRegex = new(
+        @"([\d.]+)\s*(G|M|K)bits/sec",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase,
+        TimeSpan.FromSeconds(1));
+
     private bool _disposed;
 
     /// <summary>Délégué invoqué pour chaque ligne de sortie d'iperf3 (stdout + stderr).</summary>
     public event Action<string>? OnLogReceived;
 
-    /// <summary>Durée maximale avant annulation automatique du test (défaut : 90 s).</summary>
+    /// <summary>Durée maximale avant annulation automatique du test (défaut : 90 s).</summary>
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(90);
 
     /// <summary>
@@ -72,6 +78,7 @@ public sealed class IperfEngine : IDisposable
 
         using var proc = new Process { StartInfo = psi };
 
+        // Démarrage du processus — si échec, on sort immédiatement sans tenter d'awaiter stderrTask.
         try
         {
             proc.Start();
@@ -82,7 +89,7 @@ public sealed class IperfEngine : IDisposable
             return 0;
         }
 
-        // Lecture stderr en arrière-plan
+        // Lecture stderr en arrière-plan — initialisée seulement si proc.Start() a réussi.
         var stderrTask = Task.Run(async () =>
         {
             try
@@ -93,7 +100,11 @@ public sealed class IperfEngine : IDisposable
                         OnLogReceived?.Invoke($"[ERREUR iperf3] {line}");
             }
             catch (OperationCanceledException) { /* attendu lors de l'annulation */ }
-        }, ct);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
+            }
+        }, CancellationToken.None); // Ne pas passer ct : on veut vider le buffer même après annulation
 
         // Lecture stdout ligne par ligne
         try
@@ -117,12 +128,8 @@ public sealed class IperfEngine : IDisposable
 
         try
         {
-            await proc.WaitForExitAsync(ct);
+            await proc.WaitForExitAsync(CancellationToken.None);
             await stderrTask;
-        }
-        catch (OperationCanceledException)
-        {
-            Debug.WriteLine("[IperfEngine] WaitForExitAsync annulé — processus déjà tué.");
         }
         catch (Exception ex)
         {
@@ -132,7 +139,7 @@ public sealed class IperfEngine : IDisposable
         return finalBitrate;
     }
 
-    private void KillProcess(Process proc)
+    private static void KillProcess(Process proc)
     {
         if (proc.HasExited) return;
         try { proc.Kill(entireProcessTree: true); }
@@ -144,28 +151,23 @@ public sealed class IperfEngine : IDisposable
 
     private static string BuildArgs(Preset preset, bool isReverse, string ipFlag)
     {
-        int duration = preset.Duration is > 0 and <= 120 ? preset.Duration : 10;
         string reverse = isReverse ? " -R" : string.Empty;
-        return $"-c {preset.Server} -p {preset.Port} -P {preset.Channels} {ipFlag} -t {duration}{reverse} -f m -i 1";
+        return $"-c {preset.Server} -p {preset.Port} -P {preset.Channels} -t {preset.Duration} {ipFlag}{reverse} -f m";
     }
 
-    /// <summary>
-    /// Convertit n'importe quelle unité iperf3 (Kbits/sec, Mbits/sec, Gbits/sec) en Mbps.
-    /// Retourne 0 si la ligne ne contient pas de valeur de débit reconnaissable.
-    /// </summary>
     private static double ParseBitrate(string line)
     {
-        var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 1; i < parts.Length; i++)
-        {
-            if (!double.TryParse(parts[i - 1], NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
-                continue;
+        var match = BitrateRegex.Match(line);
+        if (!match.Success) return 0;
 
-            string unit = parts[i];
-            if (unit.StartsWith("Gbits", StringComparison.OrdinalIgnoreCase)) return value * 1000.0;
-            if (unit.StartsWith("Mbits", StringComparison.OrdinalIgnoreCase)) return value;
-            if (unit.StartsWith("Kbits", StringComparison.OrdinalIgnoreCase)) return value / 1000.0;
-        }
-        return 0;
+        if (!double.TryParse(match.Groups[1].Value, NumberStyles.Float,
+            CultureInfo.InvariantCulture, out double value)) return 0;
+
+        return match.Groups[2].Value.ToUpperInvariant() switch
+        {
+            "G" => value * 1000.0,
+            "K" => value / 1000.0,
+            _   => value  // "M" → déjà en Mbps
+        };
     }
 }

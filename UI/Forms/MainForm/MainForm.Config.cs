@@ -11,7 +11,7 @@ public partial class MainForm
 
     /// <summary>
     /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
-    /// Désactive le bouton de lancement si aucun profil n'existe.
+    /// N'écrase pas le texte du bouton Start si un test est en cours.
     /// </summary>
     internal void RefreshPresetList()
     {
@@ -19,16 +19,24 @@ public partial class MainForm
         {
             cbPresets.DataSource = null;
             cbPresets.Items.Clear();
-            btnStart.Enabled = false;
-            btnStart.Text    = "AUCUN PROFIL CONFIGURÉ";
+            // N'écrase pas le texte si un test tourne déjà
+            if (!btnCancel.Enabled)
+            {
+                btnStart.Enabled = false;
+                btnStart.Text    = "AUCUN PROFIL CONFIGURÉ";
+            }
             MessageBox.Show(
                 "Aucun profil n'est configuré.\n\nOuvrez le menu \"Profils\" pour en créer un.",
                 "Configuration vide", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
 
-        btnStart.Enabled = true;
-        btnStart.Text    = "LANCER L'ANALYSE";
+        // Restaure l'état normal du bouton seulement si aucun test n'est en cours
+        if (!btnCancel.Enabled)
+        {
+            btnStart.Enabled = true;
+            btnStart.Text    = "LANCER L'ANALYSE";
+        }
 
         cbPresets.SelectedIndexChanged -= CbPresets_SelectedIndexChanged;
         cbPresets.DataSource    = null;
@@ -52,8 +60,7 @@ public partial class MainForm
         try   { ConfigService.Save(_config); }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
+            Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
         }
         ApplyPreset(p);
     }

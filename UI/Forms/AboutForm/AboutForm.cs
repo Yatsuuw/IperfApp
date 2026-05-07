@@ -1,13 +1,14 @@
 using IperfApp.UI.Constants;
 
-namespace IperfApp.UI.Forms;
+namespace IperfApp.UI.Forms.AboutForm;
 
-/// <summary>Boîte de dialogue « Informations » de l'application.</summary>
+/// <summary>Boîte de dialogue « Informations » de l'application.</summary>
 public class AboutForm : Form
 {
-    // Conservées en champ pour être libérées dans Dispose(bool).
+    // Toutes les fonts allouées ici sont libérées dans Dispose(bool).
     private readonly Font _fontTitle;
     private readonly Font _fontBody;
+    private readonly Font _fontBtn;
 
     public AboutForm(Icon? parentIcon)
     {
@@ -22,6 +23,7 @@ public class AboutForm : Form
 
         _fontTitle = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold);
         _fontBody  = new Font("Segoe UI", 9F);
+        _fontBtn   = new Font("Segoe UI", 9F);
 
         var lblTitle = new Label
         {
@@ -50,11 +52,10 @@ public class AboutForm : Form
             AutoSize  = true
         };
 
-        var fontBtn = new Font("Segoe UI", 9F);
         var btnClose = new Button
         {
             Text         = "Fermer",
-            Font         = fontBtn,
+            Font         = _fontBtn,
             DialogResult = DialogResult.OK,
             Location     = new Point(240, 145),
             Size         = new Size(90, 30),
@@ -76,7 +77,7 @@ public class AboutForm : Form
         {
             _fontTitle.Dispose();
             _fontBody.Dispose();
-            // btnClose.Font est la même instance que _fontBody — pas de double dispose.
+            _fontBtn.Dispose();
         }
         base.Dispose(disposing);
     }

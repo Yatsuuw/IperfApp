@@ -1,4 +1,3 @@
-using System.Text;
 using IperfApp.Models;
 using IperfApp.UI.Constants;
 using IperfApp.UI.Helpers;
@@ -19,7 +18,6 @@ public partial class MainForm
 
         _lastPreset = BuildCurrentPreset();
 
-        // Validation complète avant de lancer le processus
         string? validationError = _lastPreset.Validate();
         if (validationError is not null)
         {
@@ -59,7 +57,7 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erreur inattendue : {ex.Message}", "Erreur",
+            MessageBox.Show($"Erreur inattendue : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
@@ -73,21 +71,19 @@ public partial class MainForm
     /// <summary>Construit un <see cref="Preset"/> depuis les champs de l'UI.</summary>
     private Preset BuildCurrentPreset()
     {
+        // Un seul pattern-match sur cbPresets.SelectedItem
+        var selectedPreset = cbPresets.SelectedItem as Preset;
+
         _ = int.TryParse(txtPort.Text,     out int port);
         _ = int.TryParse(txtChannels.Text, out int channels);
 
-        // Récupère la durée depuis le profil sélectionné, ou défaut 10 s
-        int duration = cbPresets.SelectedItem is Preset selected && selected.Duration > 0
-            ? selected.Duration
-            : 10;
-
         return new Preset
         {
-            Name      = cbPresets.SelectedItem is Preset p ? p.Name : "Temporaire",
+            Name      = selectedPreset?.Name ?? "Temporaire",
             Server    = txtServer.Text.Trim(),
             Port      = port     > 0 ? port     : 5201,
             Channels  = channels > 0 ? channels : 8,
-            Duration  = duration,
+            Duration  = selectedPreset is { Duration: > 0 } p ? p.Duration : 10,
             IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex)
         };
     }
@@ -120,20 +116,20 @@ public partial class MainForm
 
     /// <summary>
     /// Affiche le récapitulatif des mesures dans la console de logs.
-    /// Cadre ASCII à largeur dynamique : robuste à toutes les magnitudes.
+    /// Cadre ASCII à largeur dynamique : robuste à toutes les magnitudes de débit.
     /// </summary>
     private void DisplayResults(TestResult r)
     {
         const string labelUp   = "  Upload   : ";
         const string labelDown = "  Download : ";
-        const int    labelW    = 13; // longueur des deux labels identique
+        const int    labelW    = 13;
 
         string up   = FormatMbps(r.Upload);
         string down = FormatMbps(r.Download);
 
-        int valueW  = Math.Max(up.Length, down.Length);
-        int innerW  = labelW + valueW + 2;             // marge droite de 2 espaces
-        string sep  = new string('─', innerW);
+        int valueW = Math.Max(up.Length, down.Length);
+        int innerW = labelW + valueW + 2;
+        string sep = new string('─', innerW);
 
         var sb = new StringBuilder();
         sb.AppendLine();
