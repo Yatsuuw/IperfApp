@@ -1,12 +1,13 @@
 #define MyAppName "Speedtest Iperf"
-#define MyAppVersion "1.0.4"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Lucas PIETERS"
 #define MyAppCopyright "Copyright © 2026 Lucas PIETERS"
 #define MyAppExeName "IperfApp.exe"
 
 [Setup]
 ; --- IDENTIFIANTS ET MÉTADONNÉES ---
-AppId={{A1B2C3D4-E5F6-4G7H-8I9J-K1L2M3N4O5P6}
+; GUID généré avec [System.Guid]::NewGuid() le 07/05/2026
+AppId={{4F9A3C1B-82D7-4E5A-B6F0-C3D2E1A09847}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
