@@ -28,11 +28,11 @@ public partial class MainForm
 
         int top = 20;
 
-        AddCardComboRow(pnlCard, "Profil",    ref cbPresets,   ref top, isAccent: true);
-        AddCardTextRow (pnlCard, "Serveur",   ref txtServer,   isNumeric: false, ref top);
-        AddCardTextRow (pnlCard, "Port",      ref txtPort,     isNumeric: true,  ref top);
-        AddCardTextRow (pnlCard, "Canaux",    ref txtChannels, isNumeric: true,  ref top);
-        AddCardComboRow(pnlCard, "Protocole", ref cbIpVersion, ref top, isAccent: false);
+        AddCardComboRow(pnlCard, "Profil",    out cbPresets,   ref top, isAccent: true);
+        AddCardTextRow (pnlCard, "Serveur",   out txtServer,   isNumeric: false, ref top);
+        AddCardTextRow (pnlCard, "Port",      out txtPort,     isNumeric: true,  ref top);
+        AddCardTextRow (pnlCard, "Canaux",    out txtChannels, isNumeric: true,  ref top);
+        AddCardComboRow(pnlCard, "Protocole", out cbIpVersion, ref top, isAccent: false);
 
         cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cbIpVersion.SelectedIndex = 0;
@@ -48,7 +48,7 @@ public partial class MainForm
 
     private void AddCardTextRow(
         Panel card, string label,
-        ref TextBox field,
+        out TextBox field,
         bool isNumeric,
         ref int top)
     {
@@ -110,7 +110,7 @@ public partial class MainForm
 
     private void AddCardComboRow(
         Panel card, string label,
-        ref ComboBox combo,
+        out ComboBox combo,
         ref int top,
         bool isAccent)
     {
@@ -136,7 +136,7 @@ public partial class MainForm
             Width         = RowInputW,
             DropDownStyle = ComboBoxStyle.DropDownList,
             Font          = _fonts.Track(new Font("Segoe UI", 10F)),
-            FlatStyle     = FlatStyle.Standard   // Standard = bordure native visible
+            FlatStyle     = FlatStyle.Standard
         };
 
         card.Controls.AddRange([lbl, combo]);

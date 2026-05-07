@@ -6,9 +6,6 @@ namespace IperfApp.UI.Forms.MainForm;
 
 public partial class MainForm
 {
-    /// <summary>Charge la configuration depuis le disque et met à jour l'UI.</summary>
-    private void LoadConfigIntoUI() => RefreshPresetList();
-
     /// <summary>
     /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
     /// N'écrase pas le texte du bouton Start si un test est en cours.

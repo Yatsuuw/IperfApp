@@ -17,6 +17,7 @@ public partial class SettingsForm
         txtServer.Text            = p.Server;
         txtPort.Text              = p.Port.ToString();
         txtChannels.Text          = p.Channels.ToString();
+        txtDuration.Text          = p.Duration.ToString();
         cbIpVersion.SelectedIndex = p.IpVersion.ToComboIndex();
     }
 
@@ -119,13 +120,20 @@ public partial class SettingsForm
             return;
         }
 
+        if (!int.TryParse(txtDuration.Text, out int duration) || duration is < 1 or > 120)
+        {
+            MessageBox.Show("Durée invalide — doit être un entier entre 1 et 120 secondes.",
+                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
         var updated = new Preset
         {
             Name      = name,
             Server    = server,
             Port      = port,
             Channels  = channels,
-            Duration  = current.Duration > 0 ? current.Duration : 10,
+            Duration  = duration,
             IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex)
         };
 
@@ -141,7 +149,7 @@ public partial class SettingsForm
         if (index >= 0)
             _data.Presets[index] = updated;
 
-        // Mettre à jour SelectedPresetName si le nom a changé
+        // Synchroniser SelectedPresetName si le nom a changé
         if (_data.SelectedPresetName == current.Name)
             _data.SelectedPresetName = updated.Name;
 
@@ -156,13 +164,18 @@ public partial class SettingsForm
             return;
         }
 
-        // Feedback visuel
+        // Feedback visuel — guard IsDisposed pour éviter ObjectDisposedException
+        // si la fenêtre est fermée pendant le délai d'affichage.
         var originalColor = btnSave.BackColor;
+        var originalText  = btnSave.Text;
         btnSave.Text      = "✓ Enregistré";
         btnSave.BackColor = IperfApp.UI.Constants.AppColors.Success;
         await Task.Delay(1500);
-        btnSave.Text      = "ENREGISTRER";
-        btnSave.BackColor = originalColor;
+        if (!IsDisposed)
+        {
+            btnSave.Text      = originalText;
+            btnSave.BackColor = originalColor;
+        }
 
         UpdateList(updated.Name);
     }

@@ -58,7 +58,11 @@ internal static class FormBuilderHelpers
         return tb;
     }
 
-    public static ComboBox AddComboField(
+    /// <summary>
+    /// Ajoute une ligne label + ComboBox pré-rempli avec les choix de version IP.
+    /// <para><b>Usage exclusif :</b> champ cbIpVersion uniquement.</para>
+    /// </summary>
+    public static ComboBox AddIpVersionField(
         Panel panel, string label, ComboBox cb,
         ref int top, FontTracker fonts)
     {
@@ -77,7 +81,8 @@ internal static class FormBuilderHelpers
         cb.Width         = 260;
         cb.Font          = fonts.Track(new Font("Segoe UI Semibold", 9.5F));
         cb.DropDownStyle = ComboBoxStyle.DropDownList;
-        cb.FlatStyle     = FlatStyle.Standard;   // Standard = bordure + flèche natives
+        cb.FlatStyle     = FlatStyle.Standard;
+        cb.Items.Clear();
         cb.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cb.SelectedIndex = 0;
 

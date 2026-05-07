@@ -58,7 +58,8 @@ public partial class MainForm
         Controls.Add(menuStrip);
         Controls.AddRange([lblTitle, pnlCard, btnStart, btnCancel, txtLog, btnExportNew, btnExportAppend]);
 
-        LoadConfigIntoUI();
+        // Appel direct — le wrapper LoadConfigIntoUI() a été supprimé (redondant).
+        RefreshPresetList();
     }
 
     // ---------------------------------------------------------------

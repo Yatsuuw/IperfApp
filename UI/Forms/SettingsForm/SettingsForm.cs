@@ -14,7 +14,8 @@ public partial class SettingsForm : Form
     private readonly TextBox  txtName     = new(),
                               txtServer   = new(),
                               txtPort     = new(),
-                              txtChannels = new();
+                              txtChannels = new(),
+                              txtDuration = new();
     private readonly ComboBox cbIpVersion = new();
     private readonly Button   btnAdd      = new(),
                               btnRemove   = new(),

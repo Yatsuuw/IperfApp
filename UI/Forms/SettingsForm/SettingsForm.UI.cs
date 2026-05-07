@@ -9,7 +9,7 @@ public partial class SettingsForm
     {
         Text            = " Profils";
         Icon            = parent.Icon;
-        Size            = new Size(520, 480);
+        Size            = new Size(520, 535);  // hauteur augmentée pour le champ Durée
         BackColor       = Color.White;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition   = FormStartPosition.CenterParent;
@@ -55,7 +55,8 @@ public partial class SettingsForm
         FormBuilderHelpers.AddInputField  (pnlRight, "ADRESSE SERVEUR", txtServer,   ref top, _fonts);
         FormBuilderHelpers.AddNumericField(pnlRight, "PORT",            txtPort,     ref top, _fonts);
         FormBuilderHelpers.AddNumericField(pnlRight, "CANAUX",          txtChannels, ref top, _fonts);
-        FormBuilderHelpers.AddComboField  (pnlRight, "PROTOCOLE IP",    cbIpVersion, ref top, _fonts);
+        FormBuilderHelpers.AddNumericField(pnlRight, "DURÉE (secondes)",txtDuration, ref top, _fonts);
+        FormBuilderHelpers.AddIpVersionField(pnlRight, "PROTOCOLE IP",  cbIpVersion, ref top, _fonts);
 
         btnSave.Text      = "ENREGISTRER";
         btnSave.Dock      = DockStyle.Bottom;
