@@ -115,6 +115,20 @@ public partial class SettingsForm
             IpVersion = IpVersion.Auto
         };
         _data.Presets.Add(newP);
+
+        // Persistance immédiate : le profil vide est sauvegardé avant que
+        // l'utilisateur ne renseigne ses champs, évitant toute perte si la
+        // fenêtre est fermée sans cliquer « Enregistrer ».
+        try
+        {
+            ConfigService.Save(_data);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"[SettingsForm] Échec sauvegarde après création : {ex.Message}");
+        }
+
         UpdateList(newP.Name);
         SetLockedState(false);
         lblHeader.Text    = "Modification";
@@ -126,13 +140,38 @@ public partial class SettingsForm
 
     private void DeleteSelected()
     {
-        if (lstPresets.SelectedItem is Preset p && p.Name != "Défaut")
+        if (lstPresets.SelectedItem is not Preset p || p.Name == "Défaut")
+            return;
+
+        // Confirmation obligatoire avant suppression irréversible.
+        // Le bouton « Non » est sélectionné par défaut pour éviter les fausses manips.
+        var answer = MessageBox.Show(
+            $"Supprimer le profil « {p.Name} » ?\n\nCette action est irréversible.",
+            "Confirmer la suppression",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button2);
+
+        if (answer != DialogResult.Yes)
+            return;
+
+        _data.Presets.Remove(p);
+
+        // Persistance immédiate de la suppression
+        try
         {
-            _data.Presets.Remove(p);
-            UpdateList();
-            SetLockedState(true);
-            lblHeader.Text  = "Profil";
-            btnSave.Enabled = false;
+            ConfigService.Save(_data);
         }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Le profil a été supprimé de la mémoire mais n'a pas pu être persisté :\n{ex.Message}",
+                "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        UpdateList();
+        SetLockedState(true);
+        lblHeader.Text  = "Profil";
+        btnSave.Enabled = false;
     }
 }
