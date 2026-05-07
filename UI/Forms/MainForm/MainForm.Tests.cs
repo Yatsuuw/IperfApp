@@ -97,16 +97,35 @@ public partial class MainForm
         }
     }
 
-    /// <summary>Affiche le récapitulatif des mesures dans la console de logs.</summary>
+    /// <summary>
+    /// Affiche le récapitulatif des mesures dans la console de logs.
+    /// Le format est volontairement sans cadre ASCII à largeur fixe pour être
+    /// robuste à toutes les magnitudes (Kbps, Mbps, Gbps).
+    /// </summary>
     private void DisplayResults(TestResult r)
     {
+        string FormatMbps(double mbps) => mbps switch
+        {
+            >= 1000 => $"{mbps / 1000.0:F2} Gbps",
+            >= 1    => $"{mbps:F2} Mbps",
+            _       => $"{mbps * 1000.0:F1} Kbps"
+        };
+
+        string up   = FormatMbps(r.Upload);
+        string down = FormatMbps(r.Download);
+
+        // Largeur dynamique : on s'aligne sur la plus longue des deux valeurs
+        int valueWidth = Math.Max(up.Length, down.Length);
+        string sep = new string('─', 24 + valueWidth);
+
         var sb = new StringBuilder();
         sb.AppendLine();
-        sb.AppendLine(" ╔══════════════════════════════════════╗");
-        sb.AppendLine($" ║  RÉSULTATS DE LA MESURE              ║");
-        sb.AppendLine($" ║  Upload   : {r.Upload,10:F2} Mbps          ║");
-        sb.AppendLine($" ║  Download : {r.Download,10:F2} Mbps          ║");
-        sb.AppendLine(" ╚══════════════════════════════════════╝");
+        sb.AppendLine($" ┌{sep}┐");
+        sb.AppendLine($" │  RÉSULTATS DE LA MESURE{new string(' ', valueWidth)}  │");
+        sb.AppendLine($" ├{sep}┤");
+        sb.AppendLine($" │  Upload   : {up.PadLeft(valueWidth)}          │");
+        sb.AppendLine($" │  Download : {down.PadLeft(valueWidth)}          │");
+        sb.AppendLine($" └{sep}┘");
         txtLog.AppendText(sb.ToString());
     }
 }
