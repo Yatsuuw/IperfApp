@@ -1,6 +1,7 @@
 using IperfApp.Models;
 using IperfApp.Services;
 using IperfApp.UI.Constants;
+using IperfApp.UI.Helpers;
 
 namespace IperfApp.UI.Forms.SettingsForm;
 
@@ -34,7 +35,6 @@ public partial class SettingsForm
     {
         if (lstPresets.SelectedItem is not Preset p || p.Name == "Défaut") return;
 
-        // --- Validation ---
         string name = txtName.Text.Trim();
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -55,7 +55,7 @@ public partial class SettingsForm
 
         if (!int.TryParse(txtPort.Text, out int port) || port < 1 || port > 65535)
         {
-            MessageBox.Show("Le port doit être un entier compris entre 1 et 65 535.", "Validation",
+            MessageBox.Show("Le port doit être un entier compris entre 1 et 65 535.", "Validation",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtPort.Focus();
             return;
@@ -69,14 +69,12 @@ public partial class SettingsForm
             return;
         }
 
-        // --- Mise à jour du modèle ---
         p.Name      = name;
         p.Server    = server;
         p.Port      = port;
         p.Channels  = channels;
         p.IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex);
 
-        // --- Sauvegarde avec gestion d'erreur explicite ---
         try
         {
             ConfigService.Save(_data);
@@ -84,7 +82,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Erreur lors de la sauvegarde : {ex.Message}",
+                $"Erreur lors de la sauvegarde : {ex.Message}",
                 "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -94,7 +92,6 @@ public partial class SettingsForm
         if (currentIndex >= 0 && currentIndex < lstPresets.Items.Count)
             lstPresets.SelectedIndex = currentIndex;
 
-        // --- Feedback visuel ---
         string oldTxt = btnSave.Text;
         Color  oldCol = btnSave.BackColor;
         btnSave.Text      = "✓ ENREGISTRÉ";
@@ -116,9 +113,6 @@ public partial class SettingsForm
         };
         _data.Presets.Add(newP);
 
-        // Persistance immédiate : le profil vide est sauvegardé avant que
-        // l'utilisateur ne renseigne ses champs, évitant toute perte si la
-        // fenêtre est fermée sans cliquer « Enregistrer ».
         try
         {
             ConfigService.Save(_data);
@@ -126,7 +120,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"[SettingsForm] Échec sauvegarde après création : {ex.Message}");
+                $"[SettingsForm] Échec sauvegarde après création : {ex.Message}");
         }
 
         UpdateList(newP.Name);
@@ -143,10 +137,8 @@ public partial class SettingsForm
         if (lstPresets.SelectedItem is not Preset p || p.Name == "Défaut")
             return;
 
-        // Confirmation obligatoire avant suppression irréversible.
-        // Le bouton « Non » est sélectionné par défaut pour éviter les fausses manips.
         var answer = MessageBox.Show(
-            $"Supprimer le profil « {p.Name} » ?\n\nCette action est irréversible.",
+            $"Supprimer le profil « {p.Name} » ?\n\nCette action est irréversible.",
             "Confirmer la suppression",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Warning,
@@ -157,7 +149,6 @@ public partial class SettingsForm
 
         _data.Presets.Remove(p);
 
-        // Persistance immédiate de la suppression
         try
         {
             ConfigService.Save(_data);
@@ -165,7 +156,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Le profil a été supprimé de la mémoire mais n'a pas pu être persisté :\n{ex.Message}",
+                $"Le profil a été supprimé de la mémoire mais n'a pas pu être persisté :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 

@@ -20,6 +20,7 @@ public partial class MainForm
         int btnHalfW = (CardWidth / 2) - 5;
 
         // --- Bouton Lancer ---
+        var fStart = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
         btnStart = new Button
         {
             Text      = "LANCER L'ANALYSE",
@@ -30,13 +31,15 @@ public partial class MainForm
             BackColor = AppColors.Accent,
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Font      = new Font("Segoe UI Semibold", 11F, FontStyle.Bold),
+            Font      = fStart,
             Cursor    = Cursors.Hand
         };
         btnStart.FlatAppearance.BorderSize = 0;
         btnStart.Click += async (_, _) => await RunFullTest();
+        _trackedFonts.Add(fStart);
 
         // --- Bouton Annuler ---
+        var fCancel = new Font("Segoe UI Semibold", 9F);
         btnCancel = new Button
         {
             Text      = "ANNULER",
@@ -47,7 +50,7 @@ public partial class MainForm
             BackColor = AppColors.Danger,
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Font      = new Font("Segoe UI Semibold", 9F),
+            Font      = fCancel,
             Cursor    = Cursors.Hand,
             Enabled   = false
         };
@@ -57,8 +60,10 @@ public partial class MainForm
             _testCts?.Cancel();
             btnCancel.Enabled = false;
         };
+        _trackedFonts.Add(fCancel);
 
         // --- Console de logs ---
+        var fLog = new Font("Consolas", 9F);
         txtLog = new TextBox
         {
             Multiline   = true,
@@ -70,9 +75,10 @@ public partial class MainForm
             Height      = logH,
             BackColor   = AppColors.Terminal,
             ForeColor   = Color.FromArgb(220, 220, 220),
-            Font        = new Font("Consolas", 9F),
+            Font        = fLog,
             BorderStyle = BorderStyle.None
         };
+        _trackedFonts.Add(fLog);
 
         // --- Boutons Export CSV ---
         btnExportNew    = CreateGhostButton("Nouveau rapport",    topExport, left,                 btnHalfW);

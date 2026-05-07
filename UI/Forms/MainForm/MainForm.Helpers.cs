@@ -6,22 +6,26 @@ public partial class MainForm
 {
     /// <summary>
     /// Ajoute une ligne label + TextBox à un <see cref="Panel"/> et retourne le TextBox créé.
+    /// Les <see cref="Font"/> créées sont enregistrées dans <see cref="_trackedFonts"/>.
     /// </summary>
-    private static TextBox AddModernInput(
+    private TextBox AddModernInput(
         Panel p, ref int top, string lblT, string text, string placeholder,
         int x, int lW, int iW, int g)
     {
+        var fLbl = new Font("Segoe UI Semibold", 9F);
         var lbl = new Label
         {
             Text      = lblT,
             Top       = top + 3,
             Left      = x,
             Width     = lW,
-            Font      = new Font("Segoe UI Semibold", 9F),
+            Font      = fLbl,
             TextAlign = ContentAlignment.MiddleRight,
             ForeColor = Color.DimGray
         };
+        _trackedFonts.Add(fLbl);
 
+        var fTxt = new Font("Segoe UI", 10F);
         var txt = new TextBox
         {
             Text            = text,
@@ -29,9 +33,10 @@ public partial class MainForm
             Top             = top,
             Left            = x + lW + g,
             Width           = iW,
-            Font            = new Font("Segoe UI", 10F),
+            Font            = fTxt,
             BorderStyle     = BorderStyle.FixedSingle
         };
+        _trackedFonts.Add(fTxt);
 
         p.Controls.AddRange([lbl, txt]);
         top += 42;
@@ -42,7 +47,7 @@ public partial class MainForm
     /// Ajoute une ligne label + TextBox numérique (chiffres uniquement).
     /// Délègue à <see cref="AddModernInput"/> puis attache un filtre <c>KeyPress</c>.
     /// </summary>
-    private static TextBox AddNumericInput(
+    private TextBox AddNumericInput(
         Panel p, ref int top, string lblT, string text, string placeholder,
         int x, int lW, int iW, int g)
     {
@@ -56,11 +61,12 @@ public partial class MainForm
     }
 
     /// <summary>
-    /// Crée un bouton "ghost" (contour, fond blanc, désactivé par défaut).
-    /// Utilisé pour les boutons d'export CSV.
+    /// Crée un bouton « ghost » (contour, fond blanc, désactivé par défaut).
+    /// La <see cref="Font"/> créée est enregistrée dans <see cref="_trackedFonts"/>.
     /// </summary>
     private Button CreateGhostButton(string txt, int t, int x, int w)
     {
+        var f = new Font("Segoe UI", 9F);
         var b = new Button
         {
             Text      = txt,
@@ -71,10 +77,11 @@ public partial class MainForm
             FlatStyle = FlatStyle.Flat,
             BackColor = AppColors.Card,
             Enabled   = false,
-            Font      = new Font("Segoe UI", 9F),
+            Font      = f,
             Cursor    = Cursors.Hand
         };
         b.FlatAppearance.BorderColor = Color.FromArgb(210, 220, 230);
+        _trackedFonts.Add(f);
         return b;
     }
 }

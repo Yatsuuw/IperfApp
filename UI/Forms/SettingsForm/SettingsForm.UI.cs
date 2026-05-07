@@ -34,20 +34,26 @@ public partial class SettingsForm
         lstPresets.Dock        = DockStyle.Fill;
         lstPresets.BorderStyle = BorderStyle.None;
         lstPresets.BackColor   = AppColors.SidePanel;
-        lstPresets.Font        = new Font("Segoe UI Semibold", 9F);
         lstPresets.ItemHeight  = 40;
         lstPresets.DrawMode    = DrawMode.OwnerDrawFixed;
         lstPresets.Cursor      = Cursors.Hand;
         lstPresets.DrawItem   += DrawListItem;
         lstPresets.SelectedIndexChanged += OnPresetSelectionChanged;
 
+        var lstFont = new Font("Segoe UI Semibold", 9F);
+        lstPresets.Font = lstFont;
+        _trackedFonts.Add(lstFont);
+
         pnlLeft.Controls.AddRange([lstPresets, pnlBtns]);
 
         // Panneau droit : édition du profil sélectionné
         Panel pnlRight = new() { Dock = DockStyle.Fill, Padding = new Padding(25, 20, 25, 20) };
-        lblHeader.Font     = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold);
+
+        var headerFont = new Font("Segoe UI Variable Display", 14F, FontStyle.Bold);
+        lblHeader.Font     = headerFont;
         lblHeader.Location = new Point(25, 15);
         lblHeader.AutoSize = true;
+        _trackedFonts.Add(headerFont);
 
         int top = 65;
         AddInputField  (pnlRight, "NOM DU SCÉNARIO", txtName,     ref top);
@@ -56,6 +62,7 @@ public partial class SettingsForm
         AddNumericField(pnlRight, "CANAUX",           txtChannels, ref top);
         AddComboField  (pnlRight, "PROTOCOLE IP",     cbIpVersion, ref top);
 
+        var saveFont = new Font("Segoe UI Bold", 9F);
         btnSave.Text      = "ENREGISTRER";
         btnSave.Dock      = DockStyle.Bottom;
         btnSave.Height    = 40;
@@ -63,14 +70,15 @@ public partial class SettingsForm
         btnSave.ForeColor = Color.White;
         btnSave.FlatStyle = FlatStyle.Flat;
         btnSave.Cursor    = Cursors.Hand;
-        btnSave.Font      = new Font("Segoe UI Bold", 9F);
+        btnSave.Font      = saveFont;
         btnSave.Click    += async (_, _) => await SaveDataAsync();
+        _trackedFonts.Add(saveFont);
 
         pnlRight.Controls.AddRange([lblHeader, btnSave]);
         Controls.AddRange([pnlRight, pnlLeft]);
     }
 
-    private static void ConfigureSideButton(Button b, string txt, Point loc)
+    private void ConfigureSideButton(Button b, string txt, Point loc)
     {
         b.Text      = txt;
         b.Size      = new Size(28, 28);
@@ -80,6 +88,9 @@ public partial class SettingsForm
         b.FlatAppearance.BorderColor = Color.FromArgb(210, 210, 210);
         b.BackColor = Color.White;
         b.Cursor    = Cursors.Hand;
-        b.Font      = new Font("Segoe UI", 9F, FontStyle.Bold);
+
+        var f = new Font("Segoe UI", 9F, FontStyle.Bold);
+        b.Font = f;
+        _trackedFonts.Add(f);
     }
 }

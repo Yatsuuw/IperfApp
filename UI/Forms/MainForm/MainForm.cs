@@ -7,27 +7,13 @@ namespace IperfApp.UI.Forms.MainForm;
 /// <summary>Fenêtre principale de l'application Speedtest Iperf.</summary>
 public partial class MainForm : Form
 {
-    // --- Résultat du dernier test ---
     private TestResult? _lastResult;
+    private Preset?     _lastPreset;
 
-    /// <summary>
-    /// Snapshot du profil utilisé lors du dernier test.
-    /// Stocké au moment du lancement pour garantir que l'export CSV
-    /// reflète toujours le profil réellement utilisé, même si l'utilisateur
-    /// modifie les champs après le test.
-    /// </summary>
-    private Preset? _lastPreset;
-
-    // --- Moteur iperf3 ---
     private readonly IperfEngine _engine = new();
-
-    // --- Annulation du test en cours ---
     private CancellationTokenSource? _testCts;
-
-    // --- Configuration active (jamais null après le constructeur) ---
     private ConfigData _config;
 
-    // --- Contrôles UI déclarés ici pour accès depuis les partial ---
     private TextBox   txtServer       = null!;
     private TextBox   txtPort         = null!;
     private TextBox   txtChannels     = null!;
@@ -40,15 +26,17 @@ public partial class MainForm : Form
     private ComboBox  cbIpVersion     = null!;
     private readonly ToolTip _mainToolTip = new();
 
-    /// <summary>Initialise la fenêtre principale.</summary>
+    /// <summary>
+    /// Fontes allouées inline dans BuildActionsArea, BuildConfigCard et
+    /// CreateGhostButton. Disposées dans <see cref="Dispose(bool)"/>.
+    /// </summary>
+    private readonly List<Font> _trackedFonts = [];
+
     public MainForm()
     {
         InitializeComponent();
-
-        // Chargement anticipé de la config (jamais null)
         _config = ConfigService.Load();
 
-        // Icône de la fenêtre (dispose correctement l'ancienne avant remplacement)
         string iconPath = Path.Combine(AppContext.BaseDirectory, "Resources", "favicon.ico");
         if (File.Exists(iconPath))
         {
@@ -57,7 +45,6 @@ public partial class MainForm : Form
             oldIcon?.Dispose();
         }
 
-        // Abonnement aux logs du moteur iperf3 avec guard IsDisposed
         _engine.OnLogReceived += msg =>
         {
             if (IsDisposed || !IsHandleCreated) return;
@@ -67,11 +54,9 @@ public partial class MainForm : Form
                 AppendLog(msg);
         };
 
-        // Construction de l'UI puis chargement de la config dans les contrôles
         SetupModernUI();
     }
 
-    /// <summary>Ajoute une ligne dans la console de logs.</summary>
     private void AppendLog(string msg)
     {
         txtLog.AppendText($" {msg}{Environment.NewLine}");
@@ -79,15 +64,12 @@ public partial class MainForm : Form
         txtLog.ScrollToCaret();
     }
 
-    /// <inheritdoc/>
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // Annule proprement un test en cours si l'utilisateur ferme la fenêtre
         _testCts?.Cancel();
         base.OnFormClosing(e);
     }
 
-    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -96,13 +78,9 @@ public partial class MainForm : Form
             _mainToolTip.Dispose();
             _engine.Dispose();
 
-            // Libère les handles GDI Font créés inline dans BuildActionsArea
-            // et BuildConfigCard (non gérés automatiquement par WinForms).
-            btnStart?.Font?.Dispose();
-            btnCancel?.Font?.Dispose();
-            txtLog?.Font?.Dispose();
-            cbPresets?.Font?.Dispose();
-            cbIpVersion?.Font?.Dispose();
+            foreach (var f in _trackedFonts)
+                f.Dispose();
+            _trackedFonts.Clear();
         }
         base.Dispose(disposing);
     }

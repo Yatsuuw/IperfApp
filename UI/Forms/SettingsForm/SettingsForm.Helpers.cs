@@ -12,7 +12,7 @@ public partial class SettingsForm
 
     private static void AddInputField(Panel p, string label, TextBox tb, ref int top)
     {
-        Label lbl = new()
+        var lbl = new Label
         {
             Text      = label,
             Top       = top,
@@ -28,7 +28,7 @@ public partial class SettingsForm
         tb.Font        = new Font("Segoe UI Semibold", 9.5F);
         tb.BorderStyle = BorderStyle.None;
 
-        Panel line = new()
+        var line = new Panel
         {
             Top       = tb.Bottom + 4,
             Left      = 25,
@@ -39,6 +39,10 @@ public partial class SettingsForm
 
         tb.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
         tb.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
+
+        // Enregistrement pour dispose ultérieur
+        _trackedFonts.Add(lbl.Font);
+        _trackedFonts.Add(tb.Font);
 
         p.Controls.AddRange([lbl, tb, line]);
         top += 55;
@@ -56,7 +60,7 @@ public partial class SettingsForm
 
     private static void AddComboField(Panel p, string label, ComboBox cb, ref int top)
     {
-        Label lbl = new()
+        var lbl = new Label
         {
             Text      = label,
             Top       = top,
@@ -75,7 +79,7 @@ public partial class SettingsForm
         cb.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cb.SelectedIndex = 0;
 
-        Panel line = new()
+        var line = new Panel
         {
             Top       = cb.Bottom + 4,
             Left      = 25,
@@ -86,6 +90,9 @@ public partial class SettingsForm
 
         cb.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
         cb.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
+
+        _trackedFonts.Add(lbl.Font);
+        _trackedFonts.Add(cb.Font);
 
         p.Controls.AddRange([lbl, cb, line]);
         top += 55;
@@ -107,13 +114,14 @@ public partial class SettingsForm
 
         if (!isSelected)
         {
-            using Pen pen = new(Color.FromArgb(225, 228, 232), 1);
+            using var pen = new Pen(Color.FromArgb(225, 228, 232), 1);
             e.Graphics.DrawLine(pen,
                 e.Bounds.Left  + 10, e.Bounds.Bottom - 1,
                 e.Bounds.Right - 10, e.Bounds.Bottom - 1);
         }
 
-        string profileName = _data.Presets.ElementAtOrDefault(e.Index)?.Name ?? "Inconnu";
+        // O(1) : accès direct via l'index de la ListBox au lieu de ElementAtOrDefault
+        string profileName = (lstPresets.Items[e.Index] as Preset)?.Name ?? "Inconnu";
 
         if (isSelected)
         {
@@ -157,8 +165,7 @@ public partial class SettingsForm
     /// <summary>
     /// Repeuple la <see cref="ListBox"/> des profils.
     /// Désabonne / ré-abonne <see cref="OnPresetSelectionChanged"/> pour éviter
-    /// les déclenchements multiples. Appelle <see cref="LoadSelected"/> explicitement
-    /// car l'événement est muet pendant le rechargement de la DataSource.
+    /// les déclenchements multiples pendant le rechargement de la DataSource.
     /// </summary>
     private void UpdateList(string toSelect = "")
     {

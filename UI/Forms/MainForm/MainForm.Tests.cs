@@ -1,6 +1,7 @@
 using System.Text;
 using IperfApp.Models;
 using IperfApp.UI.Constants;
+using IperfApp.UI.Helpers;
 
 namespace IperfApp.UI.Forms.MainForm;
 
@@ -16,11 +17,8 @@ public partial class MainForm
             return;
         }
 
-        // Snapshot du profil au moment du lancement — l'export CSV utilisera
-        // toujours CE profil, même si l'utilisateur modifie les champs après.
         _lastPreset = BuildCurrentPreset();
 
-        // Dispose du CTS précédent avant d'en créer un nouveau
         _testCts?.Dispose();
         _testCts = new CancellationTokenSource();
         var ct = _testCts.Token;
@@ -51,12 +49,11 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erreur inattendue : {ex.Message}", "Erreur",
+            MessageBox.Show($"Erreur inattendue : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
         {
-            // Toujours disposer le CTS et réactiver l'UI, même en cas d'exception
             _testCts?.Dispose();
             _testCts = null;
             SetTestRunningState(false);
@@ -98,25 +95,27 @@ public partial class MainForm
     }
 
     /// <summary>
+    /// Formate un débit en Mbps vers la bonne unité lisible.
+    /// Réutilisable depuis d'autres méthodes (ex : export, clipboard).
+    /// </summary>
+    internal static string FormatMbps(double mbps) => mbps switch
+    {
+        >= 1000 => $"{mbps / 1000.0:F2} Gbps",
+        >= 1    => $"{mbps:F2} Mbps",
+        _       => $"{mbps * 1000.0:F1} Kbps"
+    };
+
+    /// <summary>
     /// Affiche le récapitulatif des mesures dans la console de logs.
-    /// Le format est volontairement sans cadre ASCII à largeur fixe pour être
-    /// robuste à toutes les magnitudes (Kbps, Mbps, Gbps).
+    /// Cadre ASCII à largeur dynamique : robuste à toutes les magnitudes.
     /// </summary>
     private void DisplayResults(TestResult r)
     {
-        string FormatMbps(double mbps) => mbps switch
-        {
-            >= 1000 => $"{mbps / 1000.0:F2} Gbps",
-            >= 1    => $"{mbps:F2} Mbps",
-            _       => $"{mbps * 1000.0:F1} Kbps"
-        };
-
         string up   = FormatMbps(r.Upload);
         string down = FormatMbps(r.Download);
 
-        // Largeur dynamique : on s'aligne sur la plus longue des deux valeurs
         int valueWidth = Math.Max(up.Length, down.Length);
-        string sep = new string('─', 24 + valueWidth);
+        string sep     = new string('─', 24 + valueWidth);
 
         var sb = new StringBuilder();
         sb.AppendLine();

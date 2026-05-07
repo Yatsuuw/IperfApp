@@ -6,6 +6,8 @@ namespace IperfApp.UI.Forms.SettingsForm;
 public partial class SettingsForm : Form
 {
     private readonly ConfigData _data;
+
+    // Contrôles UI
     private readonly ListBox  lstPresets  = new();
     private readonly TextBox  txtName     = new(),
                               txtServer   = new(),
@@ -17,38 +19,30 @@ public partial class SettingsForm : Form
                               btnSave     = new();
     private readonly Label    lblHeader   = new();
 
+    /// <summary>
+    /// Liste de toutes les <see cref="Font"/> allouées inline dans les helpers
+    /// (AddInputField, AddNumericField, AddComboField, ConfigureSideButton,
+    ///  propriétés directes). Disposées toutes dans <see cref="Dispose(bool)"/>.
+    /// </summary>
+    private readonly List<Font> _trackedFonts = [];
+
     public SettingsForm(Form parent, ConfigData data)
     {
         _data = data;
         SetupUI(parent);
 
-        // Sélectionne le premier profil à l'ouverture pour que le panneau
-        // droit soit immédiatement rempli.
         string firstProfile = _data.Presets.FirstOrDefault()?.Name ?? string.Empty;
         UpdateList(firstProfile);
     }
 
-    /// <summary>
-    /// Libère les ressources GDI non gérées (objets <see cref="Font"/>)
-    /// allouées dans <c>SetupUI</c> et les helpers.
-    /// WinForms ne dispose pas automatiquement les fonts affectées
-    /// aux propriétés <c>.Font</c> lorsqu'elles ont été créées en dehors
-    /// du Designer généré — il faut les libérer explicitement.
-    /// </summary>
+    /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            lblHeader.Font?.Dispose();
-            btnSave.Font?.Dispose();
-            btnAdd.Font?.Dispose();
-            btnRemove.Font?.Dispose();
-            lstPresets.Font?.Dispose();
-
-            foreach (var tb in new[] { txtName, txtServer, txtPort, txtChannels })
-                tb.Font?.Dispose();
-
-            cbIpVersion.Font?.Dispose();
+            foreach (var f in _trackedFonts)
+                f.Dispose();
+            _trackedFonts.Clear();
         }
         base.Dispose(disposing);
     }
