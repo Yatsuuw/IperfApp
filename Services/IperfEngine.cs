@@ -25,8 +25,11 @@ public sealed class IperfEngine : IDisposable
     /// <summary>Délégué invoqué pour chaque ligne de sortie d'iperf3 (stdout + stderr).</summary>
     public event Action<string>? OnLogReceived;
 
-    /// <summary>Durée maximale avant annulation automatique du test (défaut : 90 s).</summary>
-    public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(90);
+    /// <summary>
+    /// Durée maximale avant annulation automatique du test (défaut : 90 s).
+    /// Configurable après construction, par exemple depuis la fenêtre Settings.
+    /// </summary>
+    public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(90);
 
     /// <summary>
     /// Exécute un test iperf3 (upload OU download) et retourne le débit en Mbps.
@@ -88,7 +91,7 @@ public sealed class IperfEngine : IDisposable
         }
         catch (Exception ex)
         {
-            OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
+            OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
             return 0;
         }
 
@@ -103,10 +106,13 @@ public sealed class IperfEngine : IDisposable
                     if (!string.IsNullOrWhiteSpace(line))
                         OnLogReceived?.Invoke($"[ERREUR iperf3] {line}");
             }
-            catch (OperationCanceledException) { /* attendu lors de l'annulation */ }
+            catch (OperationCanceledException)
+            {
+                Debug.WriteLine("[IperfEngine] Lecture stderr annulée (annulation du test).");
+            }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
+                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
             }
         }, CancellationToken.None);
 
@@ -139,7 +145,7 @@ public sealed class IperfEngine : IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
+            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
         }
 
         return finalBitrate;
@@ -151,7 +157,7 @@ public sealed class IperfEngine : IDisposable
         try { proc.Kill(entireProcessTree: true); }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
+            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
         }
     }
 

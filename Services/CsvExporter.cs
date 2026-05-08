@@ -10,8 +10,8 @@ public static class CsvExporter
     /// <summary>
     /// UTF-8 avec BOM : permet à Excel (Windows) de détecter l'encodage automatiquement.
     /// </summary>
-    private static readonly System.Text.Encoding CsvEncoding =
-        new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+    private static readonly Encoding CsvEncoding =
+        new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
     /// <summary>
     /// Sauvegarde <paramref name="result"/> dans <paramref name="filePath"/>.
@@ -46,8 +46,8 @@ public static class CsvExporter
             preset.Port,
             preset.Channels,
             preset.Duration,
-            result.Upload.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
-            result.Download.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)));
+            result.Upload.ToString("F2", CultureInfo.InvariantCulture),
+            result.Download.ToString("F2", CultureInfo.InvariantCulture)));
     }
 
     // ---------------------------------------------------------------
@@ -64,7 +64,7 @@ public static class CsvExporter
             "Date export", "Horodatage mesure",
             "Profil", "Serveur", "Port", "Canaux", "Durée (s)",
             "Upload (Mbps)", "Download (Mbps)",
-            $"Export généré le : {exportTime:dd/MM/yyyy HH:mm:ss}");
+            $"Export généré le : {exportTime:dd/MM/yyyy HH:mm:ss}");
 
     /// <summary>
     /// Échappe une valeur CSV : si elle contient <c>;</c>, <c>"</c> ou un saut de ligne,
