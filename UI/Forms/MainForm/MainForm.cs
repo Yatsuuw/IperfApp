@@ -67,7 +67,7 @@ public partial class MainForm : Form
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[MainForm] Impossible de charger l'icône : {ex.Message}");
+            Debug.WriteLine($"[MainForm] Impossible de charger l'icône : {ex.Message}");
         }
     }
 
@@ -94,11 +94,6 @@ public partial class MainForm : Form
     // ---------------------------------------------------------------
     // Cycle de vie
     // ---------------------------------------------------------------
-
-    // OnFormClosing ne cancelle plus _testCts ici : Dispose() s'en charge
-    // déjà (double annulation inutile, CancellationToken la tolère mais c'est du code mort).
-    protected override void OnFormClosing(FormClosingEventArgs e)
-        => base.OnFormClosing(e);
 
     protected override void Dispose(bool disposing)
     {
