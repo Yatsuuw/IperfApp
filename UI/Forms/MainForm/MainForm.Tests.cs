@@ -71,6 +71,11 @@ public partial class MainForm
     /// <summary>
     /// Construit un <see cref="Preset"/> depuis les champs de l'UI.
     /// <para>
+    /// Les valeurs de port et de canaux sont lues depuis les TextBox sans fallback silencieux :
+    /// si la valeur saisie est invalide (non numérique, hors plage), <see cref="Preset.Validate"/>
+    /// retournera un message d'erreur explicite affiché à l'utilisateur.
+    /// </para>
+    /// <para>
     /// <b>Design choice — Durée :</b> la carte de configuration n'expose pas de champ
     /// <c>txtDuration</c> modifiable en temps réel. La durée est toujours lue depuis
     /// <c>selectedPreset.Duration</c> (valeur persistée dans le profil). Pour modifier
@@ -88,8 +93,8 @@ public partial class MainForm
         {
             Name      = selectedPreset?.Name ?? "Temporaire",
             Server    = txtServer.Text.Trim(),
-            Port      = port     > 0 ? port     : 5201,
-            Channels  = channels > 0 ? channels : 8,
+            Port      = port,
+            Channels  = channels,
             Duration  = selectedPreset is { Duration: > 0 } p ? p.Duration : 10,
             IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex)
         };
@@ -141,16 +146,16 @@ public partial class MainForm
 
         int valueW = Math.Max(up.Length, down.Length);
         int innerW = labelW + valueW + 2;
-        string sep = new string('─', innerW);
+        string sep = new string('\u2500', innerW);
 
         var sb = new StringBuilder();
         sb.AppendLine();
-        sb.AppendLine($" ┌{sep}┐");
-        sb.AppendLine($" │  RÉSULTATS DE LA MESURE{new string(' ', innerW - 24)}│");
-        sb.AppendLine($" ├{sep}┤");
-        sb.AppendLine($" │{labelUp}{up.PadLeft(valueW)}  │");
-        sb.AppendLine($" │{labelDown}{down.PadLeft(valueW)}  │");
-        sb.AppendLine($" └{sep}┘");
+        sb.AppendLine($" \u250c{sep}\u2510");
+        sb.AppendLine($" \u2502  R\u00c9SULTATS DE LA MESURE{new string(' ', innerW - 24)}\u2502");
+        sb.AppendLine($" \u251c{sep}\u2524");
+        sb.AppendLine($" \u2502{labelUp}{up.PadLeft(valueW)}  \u2502");
+        sb.AppendLine($" \u2502{labelDown}{down.PadLeft(valueW)}  \u2502");
+        sb.AppendLine($" \u2514{sep}\u2518");
         txtLog.AppendText(sb.ToString());
     }
 }
