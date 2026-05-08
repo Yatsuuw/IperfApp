@@ -50,8 +50,12 @@ public partial class MainForm
         }
     }
 
-    /// <summary>Importe un fichier JSON de configuration après validation stricte.</summary>
-    private void ImportConfiguration()
+    /// <summary>
+    /// Importe un fichier JSON de configuration après validation stricte.
+    /// La lecture du fichier est exécutée hors du thread UI via <see cref="Task.Run"/>
+    /// pour éviter tout gel de l'interface sur un disque lent ou réseau.
+    /// </summary>
+    private async Task ImportConfiguration()
     {
         using var ofd = new OpenFileDialog
         {
@@ -64,7 +68,8 @@ public partial class MainForm
         string content;
         try
         {
-            content = File.ReadAllText(ofd.FileName);
+            // Lecture asynchrone hors thread UI.
+            content = await Task.Run(() => File.ReadAllText(ofd.FileName));
         }
         catch (Exception ex)
         {
@@ -95,7 +100,8 @@ public partial class MainForm
         _config = imported!;
         try
         {
-            ConfigService.Save(_config);
+            // Écriture asynchrone hors thread UI.
+            await Task.Run(() => ConfigService.Save(_config));
         }
         catch (Exception ex)
         {
@@ -109,8 +115,12 @@ public partial class MainForm
             "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    /// <summary>Exporte la configuration active vers un fichier JSON.</summary>
-    private void ExportConfiguration()
+    /// <summary>
+    /// Exporte la configuration active vers un fichier JSON.
+    /// L'écriture est exécutée hors du thread UI via <see cref="Task.Run"/>
+    /// pour éviter tout gel de l'interface sur un disque lent ou réseau.
+    /// </summary>
+    private async Task ExportConfiguration()
     {
         using var sfd = new SaveFileDialog
         {
@@ -122,7 +132,8 @@ public partial class MainForm
 
         try
         {
-            JsonExporter.SaveToFile(sfd.FileName, _config);
+            // Écriture asynchrone hors thread UI.
+            await Task.Run(() => JsonExporter.SaveToFile(sfd.FileName, _config));
             MessageBox.Show(this, "Exportation terminée !", "Succès",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
