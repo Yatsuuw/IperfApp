@@ -1,136 +1,201 @@
 using IperfApp.Models;
 using IperfApp.Services;
+using IperfApp.UI.Helpers;
 
 namespace IperfApp.UI.Forms.SettingsForm;
 
 public partial class SettingsForm
 {
     // ---------------------------------------------------------------
-    // Commandes liées aux boutons
+    // Sélection
     // ---------------------------------------------------------------
 
-    /// <summary>Crée un nouveau profil vide, le sélectionne et positionne le focus sur le nom.</summary>
-    private void CreateNew()
-    {
-        var newP = new Preset
-        {
-            Name     = $"Profil {_data.Presets.Count + 1}",
-            Server   = string.Empty,
-            Port     = 5201,
-            Channels = 4,
-            Duration = 10
-        };
-
-        _data.Presets.Add(newP);
-        UpdateList(newP.Name);
-        txtName.Focus();
-        txtName.SelectAll();
-    }
-
-    /// <summary>
-    /// Supprime le profil sélectionné après confirmation de l'utilisateur.
-    /// Le profil nommé "Défaut" ne peut pas être supprimé.
-    /// </summary>
-    private void DeleteSelected()
-    {
-        if (lstPresets.SelectedItem is not Preset p) return;
-
-        if (p.Name == "Défaut")
-        {
-            MessageBox.Show(this,
-                "Le profil \"Défaut\" ne peut pas être supprimé.",
-                "Suppression impossible",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        var confirm = MessageBox.Show(this,
-            $"Supprimer le profil \u00ab\u202f{p.Name}\u202f\u00bb\u00a0?\n\nCette action est irréversible.",
-            "Confirmer la suppression",
-            MessageBoxButtons.YesNo, MessageBoxIcon.Question,
-            MessageBoxDefaultButton.Button2);
-
-        if (confirm != DialogResult.Yes) return;
-
-        _data.Presets.Remove(p);
-        UpdateList();
-    }
-
-    /// <summary>
-    /// Valide le profil sélectionné, l'enregistre sur le disque de manière asynchrone,
-    /// puis affiche un feedback visuel.
-    /// <para>
-    /// <see cref="ConfigService.Save"/> est exécuté sur un thread de pool
-    /// (<see cref="Task.Run"/>) pour éviter de geler le thread UI sur
-    /// un système de fichiers lent (réseau, clé USB).
-    /// </para>
-    /// </summary>
-    private async Task SaveDataAsync()
-    {
-        if (lstPresets.SelectedItem is not Preset p) return;
-
-        // Lire les champs UI avant tout basculement de contrôle
-        p.Name     = txtName.Text.Trim();
-        p.Server   = txtServer.Text.Trim();
-        _ = int.TryParse(txtPort.Text,     out int port);     p.Port     = port;
-        _ = int.TryParse(txtChannels.Text, out int channels); p.Channels = channels;
-        _ = int.TryParse(txtDuration.Text, out int duration); p.Duration = duration;
-        p.IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex);
-
-        string? error = p.Validate();
-        if (error is not null)
-        {
-            MessageBox.Show(this, error, "Valeurs invalides",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        btnSave.Enabled = false;
-        btnSave.Text    = "Enregistrement...";
-
-        try
-        {
-            // I/O hors thread UI
-            await Task.Run(() => ConfigService.Save(_data));
-
-            btnSave.Text    = "\u2713 Enregistré";
-            btnSave.BackColor = Color.FromArgb(40, 167, 69);
-
-            await Task.Delay(1500);
-        }
-        catch (Exception ex)
-        {
-            // Afficher l'erreur sur le thread UI
-            if (!IsDisposed)
-                Invoke(() => MessageBox.Show(this,
-                    $"Impossible d'enregistrer la configuration :\n\n{ex.Message}",
-                    "Erreur d'enregistrement",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error));
-        }
-        finally
-        {
-            if (!IsDisposed)
-            {
-                btnSave.Text      = "Enregistrer";
-                btnSave.BackColor = Color.FromArgb(0, 120, 212);
-                btnSave.Enabled   = true;
-                UpdateList(p.Name);
-            }
-        }
-    }
-
-    // ---------------------------------------------------------------
-    // Chargement d'un profil dans les champs
-    // ---------------------------------------------------------------
-
-    /// <summary>Peuple les champs de formulaire depuis le profil sélectionné.</summary>
     private void LoadPresetIntoFields(Preset p)
     {
+        lblHeader.Text            = p.Name;
         txtName.Text              = p.Name;
         txtServer.Text            = p.Server;
         txtPort.Text              = p.Port.ToString();
         txtChannels.Text          = p.Channels.ToString();
         txtDuration.Text          = p.Duration.ToString();
         cbIpVersion.SelectedIndex = p.IpVersion.ToComboIndex();
+    }
+
+    // ---------------------------------------------------------------
+    // Création
+    // ---------------------------------------------------------------
+
+    private void CreateNew()
+    {
+        var newP = new Preset
+        {
+            Name     = $"Profil {_data.Presets.Count + 1}",
+            Server   = "exemple.iperf.fr",
+            Port     = 5201,
+            Channels = 4,
+            Duration = 10
+        };
+
+        _data.Presets.Add(newP);
+
+        try
+        {
+            ConfigService.Save(_data);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this,
+                $"Profil créé en mémoire mais non sauvegardé sur le disque :\n{ex.Message}",
+                "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        UpdateList(newP.Name);
+    }
+
+    // ---------------------------------------------------------------
+    // Suppression
+    // ---------------------------------------------------------------
+
+    private void DeleteSelected()
+    {
+        if (lstPresets.SelectedItem is not Preset p) return;
+
+        if (p.Name == "Défaut")
+        {
+            MessageBox.Show(this, "Le profil \"Défaut\" ne peut pas être supprimé.",
+                "Action impossible", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var confirm = MessageBox.Show(this,
+            $"Supprimer le profil \u00ab {p.Name} \u00bb ? Cette action est irréversible.",
+            "Confirmer la suppression",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning);
+
+        if (confirm != DialogResult.Yes) return;
+
+        _data.Presets.Remove(p);
+
+        // Si le profil supprimé était le profil sélectionné dans la MainForm,
+        // basculer sur le premier profil restant.
+        if (_data.SelectedPresetName == p.Name)
+            _data.SelectedPresetName = _data.Presets.FirstOrDefault()?.Name ?? string.Empty;
+
+        try
+        {
+            ConfigService.Save(_data);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this,
+                $"Profil supprimé en mémoire mais la sauvegarde a échoué :\n{ex.Message}",
+                "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
+        // Sélectionner le premier profil restant pour éviter un panneau vide.
+        UpdateList(_data.Presets.FirstOrDefault()?.Name ?? string.Empty);
+    }
+
+    // ---------------------------------------------------------------
+    // Sauvegarde
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// Valide et sauvegarde le profil sélectionné.
+    /// <para>
+    /// <see cref="ConfigService.Save"/> est exécuté hors thread UI via <see cref="Task.Run"/>
+    /// pour éviter tout gel de l'interface sur un système de fichiers lent (réseau, clé USB).
+    /// </para>
+    /// </summary>
+    private async Task SaveDataAsync()
+    {
+        if (lstPresets.SelectedItem is not Preset current) return;
+
+        string name   = txtName.Text.Trim();
+        string server = txtServer.Text.Trim();
+
+        if (!int.TryParse(txtPort.Text, out int port) || port is < 1 or > 65535)
+        {
+            MessageBox.Show(this, "Port invalide \u2014 doit être un entier entre 1 et 65\u202f535.",
+                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (!int.TryParse(txtChannels.Text, out int channels) || channels is < 1 or > 128)
+        {
+            MessageBox.Show(this, "Canaux invalides \u2014 doit être un entier entre 1 et 128.",
+                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (!int.TryParse(txtDuration.Text, out int duration) || duration is < 1 or > 120)
+        {
+            MessageBox.Show(this, "Durée invalide \u2014 doit être un entier entre 1 et 120 secondes.",
+                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var updated = new Preset
+        {
+            Name      = name,
+            Server    = server,
+            Port      = port,
+            Channels  = channels,
+            Duration  = duration,
+            IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex)
+        };
+
+        string? validationError = updated.Validate();
+        if (validationError is not null)
+        {
+            MessageBox.Show(this, validationError, "Validation",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        int index = _data.Presets.IndexOf(current);
+        if (index >= 0)
+            _data.Presets[index] = updated;
+
+        // Synchroniser SelectedPresetName si le nom a changé.
+        if (_data.SelectedPresetName == current.Name)
+            _data.SelectedPresetName = updated.Name;
+
+        try
+        {
+            // I/O hors thread UI pour ne pas geler l'interface sur FS lent.
+            await Task.Run(() => ConfigService.Save(_data));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"Sauvegarde échouée :\n{ex.Message}",
+                "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        // Guard AVANT Task.Delay : inutile de continuer si la fenêtre est déjà fermée.
+        if (IsDisposed) return;
+
+        // Désactiver le bouton pendant l'animation pour prévenir tout double-clic.
+        btnSave.Enabled   = false;
+        var originalColor = btnSave.BackColor;
+        var originalText  = btnSave.Text;
+        btnSave.Text      = "\u2713 Enregistré";
+        btnSave.BackColor = IperfApp.UI.Constants.AppColors.Success;
+
+        await Task.Delay(1500);
+
+        // Second guard après l'attente asynchrone.
+        if (IsDisposed) return;
+
+        // Ordre correct :
+        // 1. UpdateList d'abord — peut déclencher OnPresetSelectionChanged → LoadPresetIntoFields.
+        // 2. btnSave.Enabled = true ensuite — le bouton n'est réactif qu'une fois la liste stable.
+        UpdateList(updated.Name);
+
+        btnSave.Text      = originalText;
+        btnSave.BackColor = originalColor;
+        btnSave.Enabled   = true;
     }
 }
