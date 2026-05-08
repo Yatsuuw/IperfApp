@@ -37,7 +37,7 @@ public partial class MainForm
         var lblTitle = new Label
         {
             Text      = "DÉBIT RÉSEAU",
-            Font      = _fonts.Track(new Font("Segoe UI Variable Display", 18F, FontStyle.Bold)),
+            Font      = _fonts.Track(new Font(AppFonts.DisplayName, AppFonts.SizeHero, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
             Location  = new Point(0, 48),
             Size      = new Size(ClientSize.Width, 40),
@@ -51,14 +51,13 @@ public partial class MainForm
         _mainToolTip.SetToolTip(cbPresets,   "Sélectionnez un profil pré-enregistré.");
         _mainToolTip.SetToolTip(txtServer,   "Adresse IP ou nom d'hôte du serveur Iperf3.");
         _mainToolTip.SetToolTip(txtPort,     "Port de destination (souvent 5201 ou 9240).");
-        _mainToolTip.SetToolTip(txtChannels, "Nombre de flux TCP parallèles (recommandé : 8).");
+        _mainToolTip.SetToolTip(txtChannels, "Nombre de flux TCP parallèles (recommandé : 8).");
         _mainToolTip.SetToolTip(btnCancel,   "Annule le test en cours.");
 
         MainMenuStrip = menuStrip;
         Controls.Add(menuStrip);
         Controls.AddRange([lblTitle, pnlCard, btnStart, btnCancel, txtLog, btnExportNew, btnExportAppend]);
 
-        // Appel direct — le wrapper LoadConfigIntoUI() a été supprimé (redondant).
         RefreshPresetList();
     }
 
@@ -77,18 +76,16 @@ public partial class MainForm
         var menuProfils = new ToolStripMenuItem("Profils")
         {
             ForeColor = AppColors.Accent,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9F))
+            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeBase))
         };
         menuProfils.Click += (_, _) => OpenSettings();
 
         var menuConfig = new ToolStripMenuItem("Configuration")
         {
             ForeColor = AppColors.TextMuted,
-            Font      = _fonts.Track(new Font("Segoe UI", 9F))
+            Font      = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeBase))
         };
         menuConfig.DropDownItems.AddRange([
-            // Lambdas async pour éviter CS4014 : ImportConfiguration / ExportConfiguration
-            // retournent Task depuis le commit fix(io) — elles doivent être awaitées.
             new ToolStripMenuItem("Importer une configuration...", null,
                 async (_, _) => await ImportConfiguration()),
             new ToolStripMenuItem("Exporter une configuration...", null,
@@ -98,7 +95,7 @@ public partial class MainForm
         var menuInfo = new ToolStripMenuItem("Informations")
         {
             ForeColor = AppColors.TextMuted,
-            Font      = _fonts.Track(new Font("Segoe UI", 9F))
+            Font      = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeBase))
         };
         menuInfo.Click += (_, _) => ShowAboutBox();
 

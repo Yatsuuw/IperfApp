@@ -46,7 +46,7 @@ public static class ConfigService
                 string? validationError = p.Validate();
                 if (validationError is not null)
                 {
-                    errorMessage = $"Profil '{p.Name}' invalide : {validationError}";
+                    errorMessage = $"Profil '{p.Name}' invalide : {validationError}";
                     return false;
                 }
             }
@@ -55,7 +55,7 @@ public static class ConfigService
         }
         catch (JsonException ex)
         {
-            errorMessage = $"Syntaxe JSON invalide : {ex.Message}";
+            errorMessage = $"Syntaxe JSON invalide : {ex.Message}";
             return false;
         }
     }
@@ -82,7 +82,7 @@ public static class ConfigService
         catch (Exception ex)
         {
             Debug.WriteLine(
-                $"[ConfigService] Impossible de lire config.json : {ex.Message}");
+                $"[ConfigService] Impossible de lire config.json : {ex.Message}");
             return CreateDefault();
         }
     }
@@ -106,11 +106,12 @@ public static class ConfigService
         var data = new ConfigData();
         data.Presets.Add(new Preset
         {
-            Name     = "Défaut",
-            Server   = "poi.cubic.iperf.bytel.fr",
-            Port     = 9240,
-            Channels = 8,
-            Duration = 10
+            Name      = "Défaut",
+            Server    = "poi.cubic.iperf.bytel.fr",
+            Port      = 9240,
+            Channels  = 8,
+            Duration  = 10,
+            IsDefault = true   // seul profil système protégé
         });
         return data;
     }
@@ -122,7 +123,7 @@ public static class ConfigService
         catch (Exception ex)
         {
             Debug.WriteLine(
-                $"[ConfigService] Impossible d'écrire config.json par défaut : {ex.Message}");
+                $"[ConfigService] Impossible d'écrire config.json par défaut : {ex.Message}");
         }
         return data;
     }

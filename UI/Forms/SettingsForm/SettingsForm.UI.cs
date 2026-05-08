@@ -15,7 +15,6 @@ public partial class SettingsForm
         StartPosition   = FormStartPosition.CenterParent;
         MaximizeBox     = false;
 
-        // --- Panneau gauche : liste des profils ---
         var pnlLeft = new Panel
         {
             Dock      = DockStyle.Left,
@@ -37,16 +36,15 @@ public partial class SettingsForm
         lstPresets.ItemHeight  = 40;
         lstPresets.DrawMode    = DrawMode.OwnerDrawFixed;
         lstPresets.Cursor      = Cursors.Hand;
-        lstPresets.Font        = _fonts.Track(new Font("Segoe UI Semibold", 9F));
+        lstPresets.Font        = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeBase));
         lstPresets.DrawItem   += DrawListItem;
         lstPresets.SelectedIndexChanged += OnPresetSelectionChanged;
 
         pnlLeft.Controls.AddRange([lstPresets, pnlBtns]);
 
-        // --- Panneau droit : édition ---
         var pnlRight = new Panel { Dock = DockStyle.Fill, Padding = new Padding(25, 20, 25, 20) };
 
-        lblHeader.Font     = _fonts.Track(new Font("Segoe UI Variable Display", 14F, FontStyle.Bold));
+        lblHeader.Font     = _fonts.Track(new Font(AppFonts.DisplayName, AppFonts.SizeTitle, FontStyle.Bold));
         lblHeader.Location = new Point(25, 15);
         lblHeader.AutoSize = true;
 
@@ -65,7 +63,7 @@ public partial class SettingsForm
         btnSave.ForeColor = AppColors.CardTextWhite;
         btnSave.FlatStyle = FlatStyle.Flat;
         btnSave.Cursor    = Cursors.Hand;
-        btnSave.Font      = _fonts.Track(new Font("Segoe UI Bold", 9F));
+        btnSave.Font      = _fonts.Track(new Font(AppFonts.BoldName, AppFonts.SizeBase));
         btnSave.Click    += async (_, _) => await SaveDataAsync();
 
         pnlRight.Controls.AddRange([lblHeader, btnSave]);
@@ -82,6 +80,6 @@ public partial class SettingsForm
         b.FlatAppearance.BorderColor = AppColors.SideBtnBorder;
         b.BackColor = AppColors.Card;
         b.Cursor    = Cursors.Hand;
-        b.Font      = _fonts.Track(new Font("Segoe UI", 9F, FontStyle.Bold));
+        b.Font      = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeBase, FontStyle.Bold));
     }
 }

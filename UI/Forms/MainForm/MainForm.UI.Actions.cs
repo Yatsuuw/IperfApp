@@ -31,11 +31,18 @@ public partial class MainForm
             BackColor = AppColors.Accent,
             ForeColor = AppColors.CardTextWhite,
             FlatStyle = FlatStyle.Flat,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 11.5F, FontStyle.Bold)),
+            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, 11.5F, FontStyle.Bold)),
             Cursor    = Cursors.Hand
         };
         btnStart.FlatAppearance.BorderSize = 0;
-        btnStart.Click += async (_, _) => await RunFullTest();
+        // Wrapper try/catch sur le lambda async void pour éviter qu'une exception
+        // non capturée dans le setup (avant le try de RunFullTest) remonte silencieusement
+        // sur le SynchronizationContext et crashe l'application.
+        btnStart.Click += async (_, _) =>
+        {
+            try   { await RunFullTest(); }
+            catch (Exception ex) { Debug.WriteLine($"[btnStart] Exception non gérée : {ex}"); }
+        };
 
         // --- Bouton Annuler ---
         btnCancel = new Button
@@ -48,7 +55,7 @@ public partial class MainForm
             BackColor = AppColors.Danger,
             ForeColor = AppColors.CardTextWhite,
             FlatStyle = FlatStyle.Flat,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
+            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, 9.5F)),
             Cursor    = Cursors.Hand,
             Enabled   = false
         };
@@ -71,7 +78,7 @@ public partial class MainForm
             Height      = logH,
             BackColor   = AppColors.Terminal,
             ForeColor   = AppColors.LogText,
-            Font        = _fonts.Track(new Font("Consolas", 9F)),
+            Font        = _fonts.Track(new Font(AppFonts.MonoName, 9F)),
             BorderStyle = BorderStyle.None
         };
 

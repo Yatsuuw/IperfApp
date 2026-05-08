@@ -34,6 +34,7 @@ public partial class SettingsForm
             Port     = 5201,
             Channels = 4,
             Duration = 10
+            // IsDefault reste false par défaut (profil utilisateur)
         };
 
         _data.Presets.Add(newP);
@@ -45,7 +46,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                $"Profil créé en mémoire mais non sauvegardé sur le disque :\n{ex.Message}",
+                $"Profil créé en mémoire mais non sauvegardé sur le disque :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
@@ -60,15 +61,16 @@ public partial class SettingsForm
     {
         if (lstPresets.SelectedItem is not Preset p) return;
 
-        if (p.Name == "Défaut")
+        // Protection basée sur IsDefault, plus robuste qu'une comparaison de nom.
+        if (p.IsDefault)
         {
-            MessageBox.Show(this, "Le profil \"Défaut\" ne peut pas être supprimé.",
+            MessageBox.Show(this, "Le profil système par défaut ne peut pas être supprimé.",
                 "Action impossible", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         var confirm = MessageBox.Show(this,
-            $"Supprimer le profil \u00ab {p.Name} \u00bb ? Cette action est irréversible.",
+            $"Supprimer le profil \u00ab {p.Name} \u00bb ? Cette action est irréversible.",
             "Confirmer la suppression",
             MessageBoxButtons.YesNo,
             MessageBoxIcon.Warning);
@@ -87,7 +89,7 @@ public partial class SettingsForm
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                $"Profil supprimé en mémoire mais la sauvegarde a échoué :\n{ex.Message}",
+                $"Profil supprimé en mémoire mais la sauvegarde a échoué :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
@@ -101,49 +103,36 @@ public partial class SettingsForm
     /// <summary>
     /// Valide et sauvegarde le profil sélectionné.
     /// <para>
-    /// <see cref="ConfigService.Save"/> est exécuté hors thread UI via <see cref="Task.Run"/>
+    /// La validation est déléguée entièrement à <see cref="Preset.Validate"/>
+    /// (source unique de vérité). On construit le <see cref="Preset"/> depuis les champs,
+    /// puis on laisse Validate() retourner le premier message d'erreur.
+    /// </para>
+    /// <para>
+    /// <see cref="Services.ConfigService.Save"/> est exécuté hors thread UI via <see cref="Task.Run"/>
     /// pour éviter tout gel de l'interface sur un système de fichiers lent.
-    /// Pattern aligné avec <c>ImportConfiguration</c> et <c>CbPresets_SelectedIndexChanged</c>.
     /// </para>
     /// </summary>
     private async Task SaveDataAsync()
     {
         if (lstPresets.SelectedItem is not Preset current) return;
 
-        string name   = txtName.Text.Trim();
-        string server = txtServer.Text.Trim();
-
-        if (!int.TryParse(txtPort.Text, out int port) || port is < 1 or > 65535)
-        {
-            MessageBox.Show(this, "Port invalide \u2014 doit être un entier entre 1 et 65\u202f535.",
-                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        if (!int.TryParse(txtChannels.Text, out int channels) || channels is < 1 or > 128)
-        {
-            MessageBox.Show(this, "Canaux invalides \u2014 doit être un entier entre 1 et 128.",
-                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        if (!int.TryParse(txtDuration.Text, out int duration) || duration is < 1 or > 120)
-        {
-            MessageBox.Show(this, "Durée invalide \u2014 doit être un entier entre 1 et 120 secondes.",
-                "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
+        // Lecture des champs — pas de TryParse ici, Validate() gère les valeurs invalides.
+        _ = int.TryParse(txtPort.Text,     out int port);
+        _ = int.TryParse(txtChannels.Text, out int channels);
+        _ = int.TryParse(txtDuration.Text, out int duration);
 
         var updated = new Preset
         {
-            Name      = name,
-            Server    = server,
+            Name      = txtName.Text.Trim(),
+            Server    = txtServer.Text.Trim(),
             Port      = port,
             Channels  = channels,
             Duration  = duration,
-            IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex)
+            IpVersion = IpVersionExtensions.FromComboIndex(cbIpVersion.SelectedIndex),
+            IsDefault = current.IsDefault   // préserve le statut système
         };
 
+        // Validation centralisée — source unique de vérité.
         string? validationError = updated.Validate();
         if (validationError is not null)
         {
@@ -161,12 +150,12 @@ public partial class SettingsForm
 
         try
         {
-            // I/O hors thread UI : cohérent avec ImportConfiguration et CbPresets_SelectedIndexChanged.
+            // I/O hors thread UI.
             await Task.Run(() => ConfigService.Save(_data));
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Sauvegarde échouée :\n{ex.Message}",
+            MessageBox.Show(this, $"Sauvegarde échouée :\n{ex.Message}",
                 "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -181,11 +170,18 @@ public partial class SettingsForm
 
         await Task.Delay(1500);
 
-        if (IsDisposed) return;
-
-        UpdateList(updated.Name);
-        btnSave.Text      = originalText;
-        btnSave.BackColor = originalColor;
-        btnSave.Enabled   = true;
+        // Protection race condition : la fenêtre peut avoir été fermée pendant le délai.
+        try
+        {
+            if (IsDisposed) return;
+            UpdateList(updated.Name);
+            btnSave.Text      = originalText;
+            btnSave.BackColor = originalColor;
+            btnSave.Enabled   = true;
+        }
+        catch (ObjectDisposedException)
+        {
+            // Fenêtre détruite entre le check IsDisposed et l'accès au contrôle : ignoré.
+        }
     }
 }

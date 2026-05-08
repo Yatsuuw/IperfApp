@@ -22,7 +22,7 @@ internal static class FormBuilderHelpers
             Text      = label,
             Top       = top,
             Left      = 25,
-            Font      = fonts.Track(new Font("Segoe UI", 7F, FontStyle.Bold)),
+            Font      = fonts.Track(new Font(AppFonts.Name, AppFonts.SizeSmall, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
             AutoSize  = true
         };
@@ -30,7 +30,7 @@ internal static class FormBuilderHelpers
         tb.Top         = top + 18;
         tb.Left        = 25;
         tb.Width       = 260;
-        tb.Font        = fonts.Track(new Font("Segoe UI Semibold", 9.5F));
+        tb.Font        = fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium));
         tb.BorderStyle = BorderStyle.None;
 
         var line = new Panel
@@ -77,7 +77,7 @@ internal static class FormBuilderHelpers
             Text      = label,
             Top       = top,
             Left      = 25,
-            Font      = fonts.Track(new Font("Segoe UI", 7F, FontStyle.Bold)),
+            Font      = fonts.Track(new Font(AppFonts.Name, AppFonts.SizeSmall, FontStyle.Bold)),
             ForeColor = AppColors.Accent,
             AutoSize  = true
         };
@@ -85,7 +85,7 @@ internal static class FormBuilderHelpers
         cb.Top           = top + 18;
         cb.Left          = 25;
         cb.Width         = 260;
-        cb.Font          = fonts.Track(new Font("Segoe UI Semibold", 9.5F));
+        cb.Font          = fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium));
         cb.DropDownStyle = ComboBoxStyle.DropDownList;
         cb.FlatStyle     = FlatStyle.Standard;
         cb.Items.Clear();

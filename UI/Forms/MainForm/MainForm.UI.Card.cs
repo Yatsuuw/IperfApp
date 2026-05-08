@@ -63,7 +63,7 @@ public partial class MainForm
             Top       = top,
             Width     = RowLabelW,
             Height    = rowH,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
+            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium)),
             ForeColor = AppColors.Accent,
             TextAlign = ContentAlignment.MiddleRight
         };
@@ -74,7 +74,7 @@ public partial class MainForm
             Top         = top + (rowH - 18) / 2,
             Width       = RowInputW,
             Height      = 20,
-            Font        = _fonts.Track(new Font("Segoe UI", 10.5F)),
+            Font        = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeInputLg)),
             BorderStyle = BorderStyle.None,
             ForeColor   = AppColors.FieldText
         };
@@ -123,31 +123,24 @@ public partial class MainForm
             Top       = top,
             Width     = RowLabelW,
             Height    = rowH,
-            Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
+            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium)),
             ForeColor = isAccent ? AppColors.Accent : AppColors.TextMuted,
             TextAlign = ContentAlignment.MiddleRight
         };
 
-        // Créer le ComboBox en premier pour lire sa hauteur réelle imposée par WinForms.
-        // Dimensionner le wrapper AVANT reviendrait à un cadre trop grand ou trop petit
-        // selon le DPI et la fonte.
         combo = new ComboBox
         {
             DropDownStyle = ComboBoxStyle.DropDownList,
             FlatStyle     = FlatStyle.Flat,
-            Font          = _fonts.Track(new Font("Segoe UI", 10F)),
+            Font          = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeInput)),
             Width         = RowInputW,
             Left          = borderW,
             Top           = borderW,
-            // Neutralise la marge WinForms par défaut (3 px) qui décalerait
-            // le rendu du ComboBox à l'intérieur du wrapper selon le DPI.
             Margin        = Padding.Empty
         };
 
-        // Hauteur réelle du ComboBox (imposée par WinForms selon la fonte).
         int comboH = combo.Height;
 
-        // Wrapper calibré exactement sur le ComboBox + bordure 1 px tout autour.
         Color borderColor = AppColors.FieldBorder;
         var wrapper = new Panel
         {

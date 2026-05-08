@@ -21,6 +21,15 @@ public class Preset
     /// <summary>Version IP forcée pour ce profil.</summary>
     public IpVersion IpVersion { get; set; } = IpVersion.Auto;
 
+    /// <summary>
+    /// Indique si ce profil est le profil système protégé (non supprimable, non renommable).
+    /// Remplace la garde <c>p.Name == "Défaut"</c> hardcodée dans SettingsForm.
+    /// Initialisé à <c>false</c> pour tous les profils créés par l'utilisateur.
+    /// Le profil créé par <see cref="IperfApp.Services.ConfigService.CreateDefault"/> est
+    /// le seul à recevoir <c>IsDefault = true</c>.
+    /// </summary>
+    public bool IsDefault { get; set; } = false;
+
     /// <inheritdoc/>
     public override string ToString() => Name;
 
@@ -32,9 +41,9 @@ public class Preset
     {
         if (string.IsNullOrWhiteSpace(Name))   return "Le nom du profil est obligatoire.";
         if (string.IsNullOrWhiteSpace(Server)) return "L'adresse du serveur est obligatoire.";
-        if (Port     is < 1 or > 65535)        return $"Port invalide ({Port}) — doit être compris entre 1 et 65 535.";
-        if (Channels is < 1 or > 128)          return $"Canaux invalides ({Channels}) — doit être compris entre 1 et 128.";
-        if (Duration is < 1 or > 120)          return $"Durée invalide ({Duration}) — doit être comprise entre 1 et 120 s.";
+        if (Port     is < 1 or > 65535)        return $"Port invalide ({Port}) — doit être compris entre 1 et 65 535.";
+        if (Channels is < 1 or > 128)          return $"Canaux invalides ({Channels}) — doit être compris entre 1 et 128.";
+        if (Duration is < 1 or > 120)          return $"Durée invalide ({Duration}) — doit être comprise entre 1 et 120 s.";
         if (!Enum.IsDefined(IpVersion))         return $"Version IP invalide ({(int)IpVersion}).";
         return null;
     }

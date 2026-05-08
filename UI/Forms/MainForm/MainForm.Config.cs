@@ -7,6 +7,15 @@ namespace IperfApp.UI.Forms.MainForm;
 public partial class MainForm
 {
     /// <summary>
+    /// Verrou pour sérialiser les sauvegardes concurrentes déclenchées par
+    /// <see cref="CbPresets_SelectedIndexChanged"/>.
+    /// Un changement rapide de profil lance autant de Task.Run que de clics ;
+    /// sans ce verrou, plusieurs écritures simultanées sur config.json
+    /// pourraient corrompre le fichier.
+    /// </summary>
+    private readonly SemaphoreSlim _saveSemaphore = new(1, 1);
+
+    /// <summary>
     /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
     /// N'écrase pas l'état du bouton Start si un test est en cours (<see cref="_testRunning"/>).
     /// </summary>
@@ -63,14 +72,17 @@ public partial class MainForm
 
         _config.SelectedPresetName = p.Name;
 
-        // Sauvegarde hors thread UI : fire-and-forget avec catch intégré.
-        _ = Task.Run(() =>
+        // Sauvegarde hors thread UI avec verrou pour éviter les écritures concurrentes
+        // en cas de changement rapide de profil (plusieurs clics successifs).
+        _ = Task.Run(async () =>
         {
+            await _saveSemaphore.WaitAsync();
             try   { ConfigService.Save(_config); }
             catch (Exception ex)
             {
                 Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
             }
+            finally { _saveSemaphore.Release(); }
         });
 
         ApplyPreset(p);
