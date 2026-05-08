@@ -54,11 +54,18 @@ public partial class MainForm
         if (cbPresets.SelectedItem is not Preset p) return;
 
         _config.SelectedPresetName = p.Name;
-        try   { ConfigService.Save(_config); }
-        catch (Exception ex)
+
+        // Sauvegarde hors thread UI : fire-and-forget avec catch intégré.
+        // ApplyPreset est appelé immédiatement pour que l'UI reste réactive.
+        _ = Task.Run(() =>
         {
-            Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
-        }
+            try   { ConfigService.Save(_config); }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
+            }
+        });
+
         ApplyPreset(p);
     }
 
