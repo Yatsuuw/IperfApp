@@ -121,10 +121,10 @@ public partial class MainForm
     var sb = new StringBuilder();
     sb.AppendLine();
     sb.AppendLine($"\u250c{sep}\u2510");
-    sb.AppendLine($"\u2502R\u00c9SULTATS DE LA MESURE{new string(' ', innerW - 24)}\u2502");
+    sb.AppendLine($"\u2502R\u00c9SULTATS DE LA MESURE{new string(' ', innerW - 24)}  \u2502");
     sb.AppendLine($"\u251c{sep}\u2524");
-    sb.AppendLine($"\u2502{labelUp}{up.PadLeft(valueW)}\u2502");
-    sb.AppendLine($"\u2502{labelDown}{down.PadLeft(valueW)}\u2502");
+    sb.AppendLine($"\u2502{labelUp}{up.PadLeft(valueW)}    \u2502");
+    sb.AppendLine($"\u2502{labelDown}{down.PadLeft(valueW)}    \u2502");
     sb.AppendLine($"\u2514{sep}\u2518");
     txtLog.AppendText(sb.ToString());
   }
