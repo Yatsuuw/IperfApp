@@ -12,9 +12,9 @@ public partial class MainForm
     /// </summary>
     /// <param name="warnIfEmpty">
     /// <c>true</c> pour afficher un <see cref="MessageBox"/> si aucun profil n'est configuré.
-    /// Utiliser <c>true</c> uniquement au démarrage de l'application.
-    /// Laisser <c>false</c> (défaut) après fermeture de la fenêtre Profils : l'état
-    /// UI est mis à jour silencieusement pour ne pas surprendre l'utilisateur.
+    /// Passer <c>true</c> uniquement au démarrage de l'application.
+    /// Laisser <c>false</c> (défaut) après fermeture de SettingsForm ou après import :
+    /// l'état UI est mis à jour silencieusement.
     /// </param>
     internal void RefreshPresetList(bool warnIfEmpty = false)
     {
@@ -64,13 +64,12 @@ public partial class MainForm
         _config.SelectedPresetName = p.Name;
 
         // Sauvegarde hors thread UI : fire-and-forget avec catch intégré.
-        // ApplyPreset est appelé immédiatement pour que l'UI reste réactive.
         _ = Task.Run(() =>
         {
             try   { ConfigService.Save(_config); }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
+                Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
             }
         });
 

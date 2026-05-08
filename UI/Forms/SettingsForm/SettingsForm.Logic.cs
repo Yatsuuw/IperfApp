@@ -77,8 +77,6 @@ public partial class SettingsForm
 
         _data.Presets.Remove(p);
 
-        // Si le profil supprimé était le profil sélectionné dans la MainForm,
-        // basculer sur le premier profil restant.
         if (_data.SelectedPresetName == p.Name)
             _data.SelectedPresetName = _data.Presets.FirstOrDefault()?.Name ?? string.Empty;
 
@@ -93,7 +91,6 @@ public partial class SettingsForm
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        // Sélectionner le premier profil restant pour éviter un panneau vide.
         UpdateList(_data.Presets.FirstOrDefault()?.Name ?? string.Empty);
     }
 
@@ -105,7 +102,8 @@ public partial class SettingsForm
     /// Valide et sauvegarde le profil sélectionné.
     /// <para>
     /// <see cref="ConfigService.Save"/> est exécuté hors thread UI via <see cref="Task.Run"/>
-    /// pour éviter tout gel de l'interface sur un système de fichiers lent (réseau, clé USB).
+    /// pour éviter tout gel de l'interface sur un système de fichiers lent.
+    /// Pattern aligné avec <c>ImportConfiguration</c> et <c>CbPresets_SelectedIndexChanged</c>.
     /// </para>
     /// </summary>
     private async Task SaveDataAsync()
@@ -158,13 +156,12 @@ public partial class SettingsForm
         if (index >= 0)
             _data.Presets[index] = updated;
 
-        // Synchroniser SelectedPresetName si le nom a changé.
         if (_data.SelectedPresetName == current.Name)
             _data.SelectedPresetName = updated.Name;
 
         try
         {
-            // I/O hors thread UI pour ne pas geler l'interface sur FS lent.
+            // I/O hors thread UI : cohérent avec ImportConfiguration et CbPresets_SelectedIndexChanged.
             await Task.Run(() => ConfigService.Save(_data));
         }
         catch (Exception ex)
@@ -174,10 +171,8 @@ public partial class SettingsForm
             return;
         }
 
-        // Guard AVANT Task.Delay : inutile de continuer si la fenêtre est déjà fermée.
         if (IsDisposed) return;
 
-        // Désactiver le bouton pendant l'animation pour prévenir tout double-clic.
         btnSave.Enabled   = false;
         var originalColor = btnSave.BackColor;
         var originalText  = btnSave.Text;
@@ -186,14 +181,9 @@ public partial class SettingsForm
 
         await Task.Delay(1500);
 
-        // Second guard après l'attente asynchrone.
         if (IsDisposed) return;
 
-        // Ordre correct :
-        // 1. UpdateList d'abord — peut déclencher OnPresetSelectionChanged → LoadPresetIntoFields.
-        // 2. btnSave.Enabled = true ensuite — le bouton n'est réactif qu'une fois la liste stable.
         UpdateList(updated.Name);
-
         btnSave.Text      = originalText;
         btnSave.BackColor = originalColor;
         btnSave.Enabled   = true;
