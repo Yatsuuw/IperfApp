@@ -8,7 +8,7 @@ public partial class MainForm
 {
     /// <summary>
     /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
-    /// N'écrase pas l'état du bouton Start si un test est en cours.
+    /// N'écrase pas l'état du bouton Start si un test est en cours (<see cref="_testRunning"/>).
     /// </summary>
     internal void RefreshPresetList()
     {
@@ -17,7 +17,6 @@ public partial class MainForm
             cbPresets.DataSource = null;
             cbPresets.Items.Clear();
 
-            // N'écrase pas le texte si un test tourne déjà
             if (!_testRunning)
             {
                 btnStart.Enabled = false;
@@ -30,7 +29,6 @@ public partial class MainForm
             return;
         }
 
-        // Restaure l'état normal du bouton seulement si aucun test n'est en cours
         if (!_testRunning)
         {
             btnStart.Enabled = true;

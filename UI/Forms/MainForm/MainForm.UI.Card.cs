@@ -24,7 +24,7 @@ public partial class MainForm
 
         pnlCard.Paint += (_, e) =>
             ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle,
-                Color.FromArgb(220, 225, 232), ButtonBorderStyle.Solid);
+                AppColors.CardBorder, ButtonBorderStyle.Solid);
 
         int top = 20;
 
@@ -76,7 +76,7 @@ public partial class MainForm
             Height      = 20,
             Font        = _fonts.Track(new Font("Segoe UI", 10.5F)),
             BorderStyle = BorderStyle.None,
-            ForeColor   = Color.FromArgb(30, 30, 30)
+            ForeColor   = AppColors.FieldText
         };
 
         var line = new Panel
@@ -88,24 +88,22 @@ public partial class MainForm
             BackColor = AppColors.FieldBorder
         };
 
+        field.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
+        field.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
+
         if (isNumeric)
-        {
             field.KeyPress += (_, e) =>
             {
                 if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
                     e.Handled = true;
             };
-        }
-
-        field.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
-        field.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
 
         card.Controls.AddRange([lbl, field, line]);
         top += rowStep;
     }
 
     // ---------------------------------------------------------------
-    // Helper : ligne label + ComboBox
+    // Helper : ligne label + ComboBox + soulignement
     // ---------------------------------------------------------------
 
     private void AddCardComboRow(
@@ -115,7 +113,8 @@ public partial class MainForm
         bool isAccent)
     {
         const int rowH    = 24;
-        const int rowStep = 50;
+        const int lineGap = 3;
+        const int rowStep = 52;
 
         var lbl = new Label
         {
@@ -125,21 +124,33 @@ public partial class MainForm
             Width     = RowLabelW,
             Height    = rowH,
             Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
-            ForeColor = isAccent ? AppColors.Accent : Color.DimGray,
+            ForeColor = isAccent ? AppColors.Accent : AppColors.TextMuted,
             TextAlign = ContentAlignment.MiddleRight
         };
 
         combo = new ComboBox
         {
-            Left          = RowPaddingL + RowLabelW + RowGap,
-            Top           = top + (rowH - 22) / 2,
-            Width         = RowInputW,
+            Left         = RowPaddingL + RowLabelW + RowGap,
+            Top          = top + (rowH - 22) / 2,
+            Width        = RowInputW,
             DropDownStyle = ComboBoxStyle.DropDownList,
-            Font          = _fonts.Track(new Font("Segoe UI", 10F)),
-            FlatStyle     = FlatStyle.Standard
+            FlatStyle    = FlatStyle.Flat,
+            Font         = _fonts.Track(new Font("Segoe UI", 10F))
         };
 
-        card.Controls.AddRange([lbl, combo]);
+        var line = new Panel
+        {
+            Left      = combo.Left,
+            Top       = combo.Bottom + lineGap,
+            Width     = RowInputW,
+            Height    = 1,
+            BackColor = AppColors.FieldBorder
+        };
+
+        combo.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
+        combo.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
+
+        card.Controls.AddRange([lbl, combo, line]);
         top += rowStep;
     }
 }

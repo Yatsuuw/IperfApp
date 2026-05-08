@@ -70,7 +70,7 @@ public partial class MainForm
             Width       = CardWidth,
             Height      = logH,
             BackColor   = AppColors.Terminal,
-            ForeColor   = Color.FromArgb(220, 220, 220),
+            ForeColor   = AppColors.LogText,
             Font        = _fonts.Track(new Font("Consolas", 9F)),
             BorderStyle = BorderStyle.None
         };
