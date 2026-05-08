@@ -4,167 +4,155 @@ namespace IperfApp.UI.Forms.MainForm;
 
 public partial class MainForm
 {
-    // ---------------------------------------------------------------
-    // Constantes de mise en page de la carte
-    // ---------------------------------------------------------------
-    private const int RowLabelW   = 90;   // largeur du label
-    private const int RowInputW   = 270;  // largeur du champ / combo
-    private const int RowGap      = 12;   // espace label → champ
-    private const int RowPaddingL = 35;   // marge gauche
-    // Total occupé : 35 + 90 + 12 + 270 = 407 px  →  marge droite = 480 - 407 = 73 px
+    private const int RowLabelW = 90;
+    private const int RowInputW = 270;
+    private const int RowGap = 12;
+    private const int RowPaddingL = 35;
 
     private Panel BuildConfigCard(int cardLeft)
     {
-        var pnlCard = new Panel
-        {
-            BackColor = AppColors.Card,
-            Size      = new Size(CardWidth, CardHeight),
-            Location  = new Point(cardLeft, CardTop)
-        };
+      var pnlCard = new Panel
+      {
+        BackColor = AppColors.Card,
+        Size = new Size(CardWidth, CardHeight),
+        Location = new Point(cardLeft, CardTop)
+      };
 
-        pnlCard.Paint += (_, e) =>
-            ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle,
-                AppColors.CardBorder, ButtonBorderStyle.Solid);
+      pnlCard.Paint += (_, e) =>
+        ControlPaint.DrawBorder(e.Graphics, pnlCard.ClientRectangle,
+          AppColors.CardBorder, ButtonBorderStyle.Solid);
 
-        int top = 20;
+      int top = 20;
 
-        AddCardComboRow(pnlCard, "Profil",    out cbPresets,   ref top, isAccent: true);
-        AddCardTextRow (pnlCard, "Serveur",   out txtServer,   isNumeric: false, ref top);
-        AddCardTextRow (pnlCard, "Port",      out txtPort,     isNumeric: true,  ref top);
-        AddCardTextRow (pnlCard, "Canaux",    out txtChannels, isNumeric: true,  ref top);
-        AddCardComboRow(pnlCard, "Protocole", out cbIpVersion, ref top, isAccent: true);
+      AddCardComboRow(pnlCard, "Profil", out cbPresets, ref top, isAccent: true);
+      AddCardTextRow (pnlCard, "Serveur", out txtServer, isNumeric: false, ref top);
+      AddCardTextRow (pnlCard, "Port", out txtPort, isNumeric: true,  ref top);
+      AddCardTextRow (pnlCard, "Canaux", out txtChannels, isNumeric: true,  ref top);
+      AddCardComboRow(pnlCard, "Protocole", out cbIpVersion, ref top, isAccent: true);
 
-        cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
-        cbIpVersion.SelectedIndex = 0;
-        _mainToolTip.SetToolTip(cbIpVersion,
-            "Force le protocole IP utilisé par iperf3 (-4, -6, ou auto)");
+      cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
+      cbIpVersion.SelectedIndex = 0;
+      _mainToolTip.SetToolTip(cbIpVersion,
+        "Force le protocole IP utilisé par iperf3 (-4, -6, ou auto)");
 
-        return pnlCard;
+      return pnlCard;
     }
 
-    // ---------------------------------------------------------------
-    // Helper : ligne label + TextBox + soulignement
-    // ---------------------------------------------------------------
+  private void AddCardTextRow(
+    Panel card, string label,
+    out TextBox field,
+    bool isNumeric,
+    ref int top)
+  {
+    const int rowH = 24;
+    const int lineGap = 3;
+    const int rowStep = 52;
 
-    private void AddCardTextRow(
-        Panel card, string label,
-        out TextBox field,
-        bool isNumeric,
-        ref int top)
+    var lbl = new Label
     {
-        const int rowH    = 24;
-        const int lineGap = 3;
-        const int rowStep = 52;
+      Text = label + " :",
+      Left = RowPaddingL,
+      Top = top,
+      Width = RowLabelW,
+      Height = rowH,
+      Font = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium)),
+      ForeColor = AppColors.Accent,
+      TextAlign = ContentAlignment.MiddleRight
+    };
 
-        var lbl = new Label
-        {
-            Text      = label + " :",
-            Left      = RowPaddingL,
-            Top       = top,
-            Width     = RowLabelW,
-            Height    = rowH,
-            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium)),
-            ForeColor = AppColors.Accent,
-            TextAlign = ContentAlignment.MiddleRight
-        };
-
-        field = new TextBox
-        {
-            Left        = RowPaddingL + RowLabelW + RowGap,
-            Top         = top + (rowH - 18) / 2,
-            Width       = RowInputW,
-            Height      = 20,
-            Font        = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeInputLg)),
-            BorderStyle = BorderStyle.None,
-            ForeColor   = AppColors.FieldText
-        };
-
-        var line = new Panel
-        {
-            Left      = field.Left,
-            Top       = field.Bottom + lineGap,
-            Width     = RowInputW,
-            Height    = 1,
-            BackColor = AppColors.FieldBorder
-        };
-
-        field.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
-        field.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
-
-        if (isNumeric)
-            field.KeyPress += (_, e) =>
-            {
-                if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
-                    e.Handled = true;
-            };
-
-        card.Controls.AddRange([lbl, field, line]);
-        top += rowStep;
-    }
-
-    // ---------------------------------------------------------------
-    // Helper : ligne label + ComboBox encadrée
-    // ---------------------------------------------------------------
-
-    private void AddCardComboRow(
-        Panel card, string label,
-        out ComboBox combo,
-        ref int top,
-        bool isAccent)
+    field = new TextBox
     {
-        const int rowH    = 24;
-        const int borderW = 1;
-        const int rowStep = 52;
+      Left = RowPaddingL + RowLabelW + RowGap,
+      Top = top + (rowH - 18) / 2,
+      Width = RowInputW,
+      Height = 20,
+      Font = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeInputLg)),
+      BorderStyle = BorderStyle.None,
+      ForeColor = AppColors.FieldText
+    };
 
-        var lbl = new Label
-        {
-            Text      = label + " :",
-            Left      = RowPaddingL,
-            Top       = top,
-            Width     = RowLabelW,
-            Height    = rowH,
-            Font      = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium)),
-            ForeColor = isAccent ? AppColors.Accent : AppColors.TextMuted,
-            TextAlign = ContentAlignment.MiddleRight
-        };
+    var line = new Panel
+    {
+      Left = field.Left,
+      Top = field.Bottom + lineGap,
+      Width = RowInputW,
+      Height = 1,
+      BackColor = AppColors.FieldBorder
+    };
 
-        combo = new ComboBox
-        {
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            FlatStyle     = FlatStyle.Flat,
-            Font          = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeInput)),
-            Width         = RowInputW,
-            Left          = borderW,
-            Top           = borderW,
-            Margin        = Padding.Empty
-        };
+    field.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
+    field.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
 
-        int comboH = combo.Height;
+    if (isNumeric)
+      field.KeyPress += (_, e) =>
+      {
+        if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
+          e.Handled = true;
+      };
 
-        Color borderColor = AppColors.FieldBorder;
-        var wrapper = new Panel
-        {
-            Left      = RowPaddingL + RowLabelW + RowGap,
-            Top       = top + (rowH - comboH) / 2,
-            Width     = RowInputW + borderW * 2,
-            Height    = comboH    + borderW * 2,
-            BackColor = AppColors.Card
-        };
+    card.Controls.AddRange([lbl, field, line]);
+    top += rowStep;
+  }
 
-        wrapper.Paint += (_, e) =>
-        {
-            using var pen = new Pen(borderColor, borderW);
-            e.Graphics.DrawRectangle(pen,
-                0, 0,
-                wrapper.Width  - borderW,
-                wrapper.Height - borderW);
-        };
+  private void AddCardComboRow(
+    Panel card, string label,
+    out ComboBox combo,
+    ref int top,
+    bool isAccent)
+  {
+    const int rowH = 24;
+    const int borderW = 1;
+    const int rowStep = 52;
 
-        combo.Enter += (_, _) => { borderColor = AppColors.FieldBorderFocus; wrapper.Invalidate(); };
-        combo.Leave += (_, _) => { borderColor = AppColors.FieldBorder;      wrapper.Invalidate(); };
+    var lbl = new Label
+    {
+      Text = label + " :",
+      Left = RowPaddingL,
+      Top = top,
+      Width = RowLabelW,
+      Height = rowH,
+      Font = _fonts.Track(new Font(AppFonts.SemiBoldName, AppFonts.SizeMedium)),
+      ForeColor = isAccent ? AppColors.Accent : AppColors.TextMuted,
+      TextAlign = ContentAlignment.MiddleRight
+    };
 
-        wrapper.Controls.Add(combo);
-        card.Controls.AddRange([lbl, wrapper]);
-        top += rowStep;
-    }
+    combo = new ComboBox
+    {
+      DropDownStyle = ComboBoxStyle.DropDownList,
+      FlatStyle = FlatStyle.Flat,
+      Font = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeInput)),
+      Width = RowInputW,
+      Left = borderW,
+      Top = borderW,
+      Margin = Padding.Empty
+    };
+
+    int comboH = combo.Height;
+
+    Color borderColor = AppColors.FieldBorder;
+    var wrapper = new Panel
+    {
+      Left = RowPaddingL + RowLabelW + RowGap,
+      Top = top + (rowH - comboH) / 2,
+      Width = RowInputW + borderW * 2,
+      Height = comboH + borderW * 2,
+      BackColor = AppColors.Card
+    };
+
+    wrapper.Paint += (_, e) =>
+    {
+      using var pen = new Pen(borderColor, borderW);
+      e.Graphics.DrawRectangle(pen,
+        0, 0,
+        wrapper.Width - borderW,
+        wrapper.Height - borderW);
+    };
+
+    combo.Enter += (_, _) => { borderColor = AppColors.FieldBorderFocus; wrapper.Invalidate(); };
+    combo.Leave += (_, _) => { borderColor = AppColors.FieldBorder; wrapper.Invalidate(); };
+
+    wrapper.Controls.Add(combo);
+    card.Controls.AddRange([lbl, wrapper]);
+    top += rowStep;
+  }
 }
