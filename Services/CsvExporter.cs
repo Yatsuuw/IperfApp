@@ -1,3 +1,4 @@
+using System.Globalization;
 using IperfApp.Models;
 
 namespace IperfApp.Services;
@@ -56,8 +57,6 @@ public static class CsvExporter
 
     /// <summary>
     /// Construit l'en-tête CSV avec le timestamp d'export capturé à l'entrée de <see cref="Save"/>.
-    /// Méthode statique plutôt que propriété pour rendre explicite que le timestamp
-    /// est une valeur injectée, non un side-effect de l'heure courante.
     /// </summary>
     private static string BuildHeader(DateTime exportTime) =>
         string.Join(Separator,

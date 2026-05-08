@@ -51,7 +51,7 @@ public partial class MainForm
         _mainToolTip.SetToolTip(cbPresets,   "Sélectionnez un profil pré-enregistré.");
         _mainToolTip.SetToolTip(txtServer,   "Adresse IP ou nom d'hôte du serveur Iperf3.");
         _mainToolTip.SetToolTip(txtPort,     "Port de destination (souvent 5201 ou 9240).");
-        _mainToolTip.SetToolTip(txtChannels, "Nombre de flux TCP parallèles (recommandé : 8).");
+        _mainToolTip.SetToolTip(txtChannels, "Nombre de flux TCP parallèles (recommandé : 8).");
         _mainToolTip.SetToolTip(btnCancel,   "Annule le test en cours.");
 
         MainMenuStrip = menuStrip;
@@ -87,8 +87,12 @@ public partial class MainForm
             Font      = _fonts.Track(new Font("Segoe UI", 9F))
         };
         menuConfig.DropDownItems.AddRange([
-            new ToolStripMenuItem("Importer une configuration...", null, (_, _) => ImportConfiguration()),
-            new ToolStripMenuItem("Exporter une configuration...", null, (_, _) => ExportConfiguration())
+            // Lambdas async pour éviter CS4014 : ImportConfiguration / ExportConfiguration
+            // retournent Task depuis le commit fix(io) — elles doivent être awaitées.
+            new ToolStripMenuItem("Importer une configuration...", null,
+                async (_, _) => await ImportConfiguration()),
+            new ToolStripMenuItem("Exporter une configuration...", null,
+                async (_, _) => await ExportConfiguration())
         ]);
 
         var menuInfo = new ToolStripMenuItem("Informations")
