@@ -10,7 +10,13 @@ public partial class MainForm
     /// Repeuple le <see cref="ComboBox"/> des profils et sélectionne le dernier utilisé.
     /// N'écrase pas l'état du bouton Start si un test est en cours (<see cref="_testRunning"/>).
     /// </summary>
-    internal void RefreshPresetList()
+    /// <param name="warnIfEmpty">
+    /// <c>true</c> pour afficher un <see cref="MessageBox"/> si aucun profil n'est configuré.
+    /// Utiliser <c>true</c> uniquement au démarrage de l'application.
+    /// Laisser <c>false</c> (défaut) après fermeture de la fenêtre Profils : l'état
+    /// UI est mis à jour silencieusement pour ne pas surprendre l'utilisateur.
+    /// </param>
+    internal void RefreshPresetList(bool warnIfEmpty = false)
     {
         if (_config.Presets.Count == 0)
         {
@@ -23,9 +29,11 @@ public partial class MainForm
                 btnStart.Text    = "AUCUN PROFIL CONFIGURÉ";
             }
 
-            MessageBox.Show(this,
-                "Aucun profil n'est configuré.\n\nOuvrez le menu \"Profils\" pour en créer un.",
-                "Configuration vide", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            if (warnIfEmpty)
+                MessageBox.Show(this,
+                    "Aucun profil n'est configuré.\n\nOuvrez le menu \"Profils\" pour en créer un.",
+                    "Configuration vide", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
             return;
         }
 
@@ -62,7 +70,7 @@ public partial class MainForm
             try   { ConfigService.Save(_config); }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
+                Debug.WriteLine($"[MainForm] Échec sauvegarde sélection profil : {ex.Message}");
             }
         });
 
