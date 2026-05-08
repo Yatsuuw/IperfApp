@@ -32,7 +32,7 @@ public partial class MainForm
         AddCardTextRow (pnlCard, "Serveur",   out txtServer,   isNumeric: false, ref top);
         AddCardTextRow (pnlCard, "Port",      out txtPort,     isNumeric: true,  ref top);
         AddCardTextRow (pnlCard, "Canaux",    out txtChannels, isNumeric: true,  ref top);
-        AddCardComboRow(pnlCard, "Protocole", out cbIpVersion, ref top, isAccent: false);
+        AddCardComboRow(pnlCard, "Protocole", out cbIpVersion, ref top, isAccent: true);
 
         cbIpVersion.Items.AddRange(["Auto (défaut)", "IPv4 (-4)", "IPv6 (-6)"]);
         cbIpVersion.SelectedIndex = 0;
@@ -103,7 +103,7 @@ public partial class MainForm
     }
 
     // ---------------------------------------------------------------
-    // Helper : ligne label + ComboBox + soulignement
+    // Helper : ligne label + ComboBox encadrée
     // ---------------------------------------------------------------
 
     private void AddCardComboRow(
@@ -113,7 +113,7 @@ public partial class MainForm
         bool isAccent)
     {
         const int rowH    = 24;
-        const int lineGap = 3;
+        const int borderW = 1;
         const int rowStep = 52;
 
         var lbl = new Label
@@ -128,29 +128,41 @@ public partial class MainForm
             TextAlign = ContentAlignment.MiddleRight
         };
 
+        // Wrapper qui dessine la bordure autour du ComboBox
+        var wrapper = new Panel
+        {
+            Left      = RowPaddingL + RowLabelW + RowGap,
+            Top       = top,
+            Width     = RowInputW + borderW * 2,
+            Height    = rowH + borderW * 2,
+            BackColor = AppColors.Card,
+            Padding   = new Padding(borderW)
+        };
+
+        Color borderColor = AppColors.FieldBorder;
+        wrapper.Paint += (_, e) =>
+        {
+            using var pen = new System.Drawing.Pen(borderColor, borderW);
+            e.Graphics.DrawRectangle(pen,
+                0, 0,
+                wrapper.Width  - borderW,
+                wrapper.Height - borderW);
+        };
+
         combo = new ComboBox
         {
-            Left          = RowPaddingL + RowLabelW + RowGap,
-            Top           = top + (rowH - 22) / 2,
-            Width         = RowInputW,
+            Dock          = DockStyle.Fill,
             DropDownStyle = ComboBoxStyle.DropDownList,
             FlatStyle     = FlatStyle.Flat,
-            Font          = _fonts.Track(new Font("Segoe UI", 10F))
+            Font          = _fonts.Track(new Font("Segoe UI", 10F)),
+            Margin        = new Padding(0)
         };
 
-        var line = new Panel
-        {
-            Left      = combo.Left,
-            Top       = combo.Bottom + lineGap,
-            Width     = RowInputW,
-            Height    = 1,
-            BackColor = AppColors.FieldBorder
-        };
+        combo.Enter += (_, _) => { borderColor = AppColors.FieldBorderFocus; wrapper.Invalidate(); };
+        combo.Leave += (_, _) => { borderColor = AppColors.FieldBorder;      wrapper.Invalidate(); };
 
-        combo.Enter += (_, _) => line.BackColor = AppColors.FieldBorderFocus;
-        combo.Leave += (_, _) => line.BackColor = AppColors.FieldBorder;
-
-        card.Controls.AddRange([lbl, combo, line]);
+        wrapper.Controls.Add(combo);
+        card.Controls.AddRange([lbl, wrapper]);
         top += rowStep;
     }
 }
