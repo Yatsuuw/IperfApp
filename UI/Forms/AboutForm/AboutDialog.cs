@@ -14,7 +14,7 @@ public sealed class AboutDialog : Form
     public AboutDialog(Icon? ownerIcon)
     {
         Text            = "Informations";
-        Size            = new Size(460, 400);
+        Size            = new Size(460, 430);
         MinimumSize     = Size;
         MaximumSize     = Size;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -69,9 +69,6 @@ public sealed class AboutDialog : Form
         };
 
         // --- Version ------------------------------------------------
-        // Application.ProductVersion peut contenir un hash de commit
-        // ajouté par .NET au moment du publish (ex. "1.1.0+abc123").
-        // On tronque d'abord au premier '+', puis au format X.Y.Z.
         string rawVersion = Application.ProductVersion ?? "1.0.0";
         string cleanVersion = rawVersion.Contains('+')
             ? rawVersion[..rawVersion.IndexOf('+')]
@@ -139,7 +136,7 @@ public sealed class AboutDialog : Form
         // --- Copyright ---------------------------------------------
         var lblCopyright = new Label
         {
-            Text      = $"\u00a9 {DateTime.Now.Year} Lucas PIETERS — Tous droits réservés",
+            Text      = $"\u00a9 {DateTime.Now.Year} Lucas PIETERS \u2014 Tous droits réservés",
             Font      = _fonts.Track(new Font("Segoe UI", 8F)),
             ForeColor = AppColors.TextMuted,
             AutoSize  = false,
@@ -165,7 +162,7 @@ public sealed class AboutDialog : Form
         btnClose.FlatAppearance.BorderSize = 0;
         btnClose.Location = new Point(
             (ClientSize.Width - btnClose.Width) / 2,
-            lblCopyright.Bottom + 12);
+            lblCopyright.Bottom + 24);
 
         btnClose.Click += (_, _) => Close();
 
