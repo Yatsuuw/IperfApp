@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.RegularExpressions;
 using IperfApp.Models;
 
@@ -26,7 +25,7 @@ public sealed class IperfEngine : IDisposable
     public event Action<string>? OnLogReceived;
 
     /// <summary>
-    /// Durée maximale avant annulation automatique du test (défaut : 90 s).
+    /// Durée maximale avant annulation automatique du test (défaut : 90 s).
     /// Configurable après construction, par exemple depuis la fenêtre Settings.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(90);
@@ -91,7 +90,7 @@ public sealed class IperfEngine : IDisposable
         }
         catch (Exception ex)
         {
-            OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
+            OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
             return 0;
         }
 
@@ -112,7 +111,7 @@ public sealed class IperfEngine : IDisposable
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
+                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
             }
         }, CancellationToken.None);
 
@@ -145,7 +144,7 @@ public sealed class IperfEngine : IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
+            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
         }
 
         return finalBitrate;
@@ -157,7 +156,7 @@ public sealed class IperfEngine : IDisposable
         try { proc.Kill(entireProcessTree: true); }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
+            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
         }
     }
 
