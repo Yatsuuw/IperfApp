@@ -1,4 +1,5 @@
 using IperfApp.Models;
+using IperfApp.UI.Helpers;
 
 namespace IperfApp.Services;
 
@@ -39,12 +40,7 @@ public static class CsvExporter
             EscapeCsv(preset.Server),
             preset.Channels,
             preset.Port,
-            preset.IpVersion switch
-            {
-                IpVersion.IPv4 => "IPv4",
-                IpVersion.IPv6 => "IPv6",
-                _              => "Auto"
-            },
+            preset.IpVersion.ToLabel(),
             result.Upload.ToString("F2", CultureInfo.InvariantCulture),
             result.Download.ToString("F2", CultureInfo.InvariantCulture)));
     }

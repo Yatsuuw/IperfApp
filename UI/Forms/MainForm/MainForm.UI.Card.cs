@@ -160,7 +160,7 @@ public partial class MainForm
 
         wrapper.Paint += (_, e) =>
         {
-            using var pen = new System.Drawing.Pen(borderColor, borderW);
+            using var pen = new Pen(borderColor, borderW);
             e.Graphics.DrawRectangle(pen,
                 0, 0,
                 wrapper.Width  - borderW,

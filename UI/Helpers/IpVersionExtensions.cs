@@ -4,8 +4,9 @@ namespace IperfApp.UI.Helpers;
 
 /// <summary>
 /// Extensions pour <see cref="IpVersion"/> :
-/// centralise la correspondance entre l’enum et l’index du ComboBox.
-/// Évite la triplication du switch dans MainForm, SettingsForm et BuildConfigCard.
+/// centralise la correspondance entre l'enum et l'index du ComboBox,
+/// ainsi que la conversion en libellé lisible (CSV, logs).
+/// Évite la triplication du switch dans MainForm, SettingsForm et CsvExporter.
 /// </summary>
 internal static class IpVersionExtensions
 {
@@ -23,5 +24,16 @@ internal static class IpVersionExtensions
         1 => IpVersion.IPv4,
         2 => IpVersion.IPv6,
         _ => IpVersion.Auto
+    };
+
+    /// <summary>
+    /// Retourne le libellé texte de la version IP pour l'export CSV et les logs.
+    /// Source unique de vérité — ne pas dupliquer ce switch ailleurs.
+    /// </summary>
+    public static string ToLabel(this IpVersion v) => v switch
+    {
+        IpVersion.IPv4 => "IPv4",
+        IpVersion.IPv6 => "IPv6",
+        _              => "Auto"
     };
 }

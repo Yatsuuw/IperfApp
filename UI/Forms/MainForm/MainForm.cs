@@ -95,11 +95,10 @@ public partial class MainForm : Form
     // Cycle de vie
     // ---------------------------------------------------------------
 
+    // OnFormClosing ne cancelle plus _testCts ici : Dispose() s'en charge
+    // déjà (double annulation inutile, CancellationToken la tolère mais c'est du code mort).
     protected override void OnFormClosing(FormClosingEventArgs e)
-    {
-        _testCts?.Cancel();
-        base.OnFormClosing(e);
-    }
+        => base.OnFormClosing(e);
 
     protected override void Dispose(bool disposing)
     {
