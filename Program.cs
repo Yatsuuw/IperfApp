@@ -33,13 +33,16 @@ static class Program
         }
     }
 
-    private static void ShowFatalError(string context, Exception ex)
-    {
+    /// <summary>
+    /// Affiche une boîte de dialogue d'erreur fatale.
+    /// Le StackTrace est intentionnellement omis : en contexte de production,
+    /// des chemins internes ne doivent pas être exposés à l'utilisateur final.
+    /// Pour le débogage, consulter les journaux de Debug.WriteLine ou un outil de crash reporting.
+    /// </summary>
+    private static void ShowFatalError(string context, Exception ex) =>
         MessageBox.Show(
-            $"{context} :\n\n{ex.GetType().Name}\n{ex.Message}\n\n{ex.StackTrace}",
+            $"{context} :\n\n{ex.GetType().Name}\n{ex.Message}",
             "Erreur fatale",
             MessageBoxButtons.OK,
-            MessageBoxIcon.Error
-        );
-    }
+            MessageBoxIcon.Error);
 }

@@ -11,7 +11,7 @@ public partial class MainForm
     {
         if (string.IsNullOrWhiteSpace(txtServer.Text))
         {
-            MessageBox.Show("Veuillez entrer l'adresse du serveur.", "Champ requis",
+            MessageBox.Show(this, "Veuillez entrer l'adresse du serveur.", "Champ requis",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -21,7 +21,7 @@ public partial class MainForm
         string? validationError = _lastPreset.Validate();
         if (validationError is not null)
         {
-            MessageBox.Show(validationError, "Valeurs invalides",
+            MessageBox.Show(this, validationError, "Valeurs invalides",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -57,7 +57,7 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erreur inattendue : {ex.Message}", "Erreur",
+            MessageBox.Show(this, $"Erreur inattendue : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally

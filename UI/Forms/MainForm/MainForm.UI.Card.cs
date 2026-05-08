@@ -130,12 +130,12 @@ public partial class MainForm
 
         combo = new ComboBox
         {
-            Left         = RowPaddingL + RowLabelW + RowGap,
-            Top          = top + (rowH - 22) / 2,
-            Width        = RowInputW,
+            Left          = RowPaddingL + RowLabelW + RowGap,
+            Top           = top + (rowH - 22) / 2,
+            Width         = RowInputW,
             DropDownStyle = ComboBoxStyle.DropDownList,
-            FlatStyle    = FlatStyle.Flat,
-            Font         = _fonts.Track(new Font("Segoe UI", 10F))
+            FlatStyle     = FlatStyle.Flat,
+            Font          = _fonts.Track(new Font("Segoe UI", 10F))
         };
 
         var line = new Panel

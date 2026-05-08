@@ -23,7 +23,7 @@ public partial class MainForm
                 btnStart.Text    = "AUCUN PROFIL CONFIGURÉ";
             }
 
-            MessageBox.Show(
+            MessageBox.Show(this,
                 "Aucun profil n'est configuré.\n\nOuvrez le menu \"Profils\" pour en créer un.",
                 "Configuration vide", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;

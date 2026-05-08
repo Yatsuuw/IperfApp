@@ -44,7 +44,7 @@ public partial class SettingsForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
+            MessageBox.Show(this,
                 $"Profil créé en mémoire mais non sauvegardé sur le disque :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
@@ -62,12 +62,12 @@ public partial class SettingsForm
 
         if (p.Name == "Défaut")
         {
-            MessageBox.Show("Le profil \"Défaut\" ne peut pas être supprimé.",
+            MessageBox.Show(this, "Le profil \"Défaut\" ne peut pas être supprimé.",
                 "Action impossible", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
-        var confirm = MessageBox.Show(
+        var confirm = MessageBox.Show(this,
             $"Supprimer le profil « {p.Name} » ? Cette action est irréversible.",
             "Confirmer la suppression",
             MessageBoxButtons.YesNo,
@@ -87,7 +87,7 @@ public partial class SettingsForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
+            MessageBox.Show(this,
                 $"Profil supprimé en mémoire mais la sauvegarde a échoué :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
@@ -108,21 +108,21 @@ public partial class SettingsForm
 
         if (!int.TryParse(txtPort.Text, out int port) || port is < 1 or > 65535)
         {
-            MessageBox.Show("Port invalide — doit être un entier entre 1 et 65 535.",
+            MessageBox.Show(this, "Port invalide — doit être un entier entre 1 et 65 535.",
                 "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         if (!int.TryParse(txtChannels.Text, out int channels) || channels is < 1 or > 128)
         {
-            MessageBox.Show("Canaux invalides — doit être un entier entre 1 et 128.",
+            MessageBox.Show(this, "Canaux invalides — doit être un entier entre 1 et 128.",
                 "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         if (!int.TryParse(txtDuration.Text, out int duration) || duration is < 1 or > 120)
         {
-            MessageBox.Show("Durée invalide — doit être un entier entre 1 et 120 secondes.",
+            MessageBox.Show(this, "Durée invalide — doit être un entier entre 1 et 120 secondes.",
                 "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -140,7 +140,7 @@ public partial class SettingsForm
         string? validationError = updated.Validate();
         if (validationError is not null)
         {
-            MessageBox.Show(validationError, "Validation",
+            MessageBox.Show(this, validationError, "Validation",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -159,18 +159,21 @@ public partial class SettingsForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Sauvegarde échouée :\n{ex.Message}",
+            MessageBox.Show(this, $"Sauvegarde échouée :\n{ex.Message}",
                 "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
-        // Feedback visuel — guard IsDisposed pour éviter ObjectDisposedException
-        // si la fenêtre est fermée pendant le délai d'affichage.
+        // Guard AVANT Task.Delay : inutile de continuer si la fenêtre est déjà fermée.
+        if (IsDisposed) return;
+
         var originalColor = btnSave.BackColor;
         var originalText  = btnSave.Text;
         btnSave.Text      = "✓ Enregistré";
         btnSave.BackColor = IperfApp.UI.Constants.AppColors.Success;
         await Task.Delay(1500);
+
+        // Second guard après l'attente asynchrone.
         if (!IsDisposed)
         {
             btnSave.Text      = originalText;

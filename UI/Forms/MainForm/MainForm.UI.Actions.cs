@@ -29,7 +29,7 @@ public partial class MainForm
             Width     = CardWidth,
             Height    = btnMainH,
             BackColor = AppColors.Accent,
-            ForeColor = Color.White,
+            ForeColor = AppColors.CardTextWhite,
             FlatStyle = FlatStyle.Flat,
             Font      = _fonts.Track(new Font("Segoe UI Semibold", 11.5F, FontStyle.Bold)),
             Cursor    = Cursors.Hand
@@ -46,7 +46,7 @@ public partial class MainForm
             Width     = CardWidth,
             Height    = btnCancelH,
             BackColor = AppColors.Danger,
-            ForeColor = Color.White,
+            ForeColor = AppColors.CardTextWhite,
             FlatStyle = FlatStyle.Flat,
             Font      = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
             Cursor    = Cursors.Hand,

@@ -8,7 +8,12 @@ namespace IperfApp.UI.Helpers;
 /// </summary>
 internal static class FormBuilderHelpers
 {
-    public static TextBox AddInputField(
+    /// <summary>
+    /// Ajoute une ligne label + TextBox (saisie libre) dans <paramref name="panel"/>.
+    /// Le TextBox <paramref name="tb"/> est configuré sur place — pas de valeur de retour
+    /// puisque l'appelant détient déjà la référence.
+    /// </summary>
+    public static void AddInputField(
         Panel panel, string label, TextBox tb,
         ref int top, FontTracker fonts)
     {
@@ -42,10 +47,12 @@ internal static class FormBuilderHelpers
 
         panel.Controls.AddRange([lbl, tb, line]);
         top += 55;
-        return tb;
     }
 
-    public static TextBox AddNumericField(
+    /// <summary>
+    /// Ajoute une ligne label + TextBox numérique (filtre les saisies non numériques).
+    /// </summary>
+    public static void AddNumericField(
         Panel panel, string label, TextBox tb,
         ref int top, FontTracker fonts)
     {
@@ -55,14 +62,13 @@ internal static class FormBuilderHelpers
             if (!char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar))
                 e.Handled = true;
         };
-        return tb;
     }
 
     /// <summary>
     /// Ajoute une ligne label + ComboBox pré-rempli avec les choix de version IP.
     /// <para><b>Usage exclusif :</b> champ cbIpVersion uniquement.</para>
     /// </summary>
-    public static ComboBox AddIpVersionField(
+    public static void AddIpVersionField(
         Panel panel, string label, ComboBox cb,
         ref int top, FontTracker fonts)
     {
@@ -100,6 +106,5 @@ internal static class FormBuilderHelpers
 
         panel.Controls.AddRange([lbl, cb, line]);
         top += 55;
-        return cb;
     }
 }

@@ -10,6 +10,10 @@ namespace IperfApp.Services;
 /// </summary>
 public sealed class IperfEngine : IDisposable
 {
+    /// <summary>Chemin absolu vers l'exécutable iperf3, calculé une seule fois au démarrage.</summary>
+    private static readonly string IperfExePath =
+        Path.Combine(AppContext.BaseDirectory, "Resources", "iperf3.exe");
+
     // Regex compilé une seule fois pour toute la durée de vie de l'application.
     private static readonly Regex BitrateRegex = new(
         @"([\d.]+)\s*(G|M|K)bits/sec",
@@ -68,7 +72,7 @@ public sealed class IperfEngine : IDisposable
 
         var psi = new ProcessStartInfo
         {
-            FileName               = Path.Combine(AppContext.BaseDirectory, "Resources", "iperf3.exe"),
+            FileName               = IperfExePath,
             Arguments              = BuildArgs(preset, isReverse, ipFlag),
             RedirectStandardOutput = true,
             RedirectStandardError  = true,
@@ -78,7 +82,6 @@ public sealed class IperfEngine : IDisposable
 
         using var proc = new Process { StartInfo = psi };
 
-        // Démarrage du processus — si échec, on sort immédiatement sans tenter d'awaiter stderrTask.
         try
         {
             proc.Start();
@@ -89,7 +92,8 @@ public sealed class IperfEngine : IDisposable
             return 0;
         }
 
-        // Lecture stderr en arrière-plan — initialisée seulement si proc.Start() a réussi.
+        // Lecture stderr en arrière-plan — CancellationToken.None intentionnel :
+        // on vide le buffer même après annulation pour éviter un deadlock.
         var stderrTask = Task.Run(async () =>
         {
             try
@@ -104,9 +108,11 @@ public sealed class IperfEngine : IDisposable
             {
                 Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
             }
-        }, CancellationToken.None); // Ne pas passer ct : on veut vider le buffer même après annulation
+        }, CancellationToken.None);
 
-        // Lecture stdout ligne par ligne
+        // Lecture stdout ligne par ligne.
+        // StringComparison.Ordinal : "receiver" est un mot ASCII fixe du protocole iperf3,
+        // la comparaison ordinale est la plus rapide et la plus correcte ici.
         try
         {
             string? outputLine;

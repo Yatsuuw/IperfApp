@@ -40,7 +40,7 @@ public partial class SettingsForm
         TextRenderer.DrawText(
             e.Graphics, name, lstPresets.Font,
             new Rectangle(e.Bounds.X + 22, e.Bounds.Y, e.Bounds.Width - 22, e.Bounds.Height),
-            isSelected ? Color.White : AppColors.TextSecondary,
+            isSelected ? AppColors.CardTextWhite : AppColors.TextSecondary,
             TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
     }
 
@@ -58,8 +58,8 @@ public partial class SettingsForm
             txtPort.ReadOnly = txtChannels.ReadOnly = txtDuration.ReadOnly = locked;
         cbIpVersion.Enabled = !locked;
 
-        Color bg = locked ? AppColors.FieldLocked : Color.White;
-        Color fg = locked ? AppColors.TextLocked  : Color.Black;
+        Color bg = locked ? AppColors.FieldLocked : AppColors.Card;
+        Color fg = locked ? AppColors.TextLocked  : AppColors.FieldText;
 
         foreach (var field in (TextBox[])[txtName, txtServer, txtPort, txtChannels, txtDuration])
         {

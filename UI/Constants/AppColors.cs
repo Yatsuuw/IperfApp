@@ -25,6 +25,9 @@ internal static class AppColors
 
     // ── Texte ─────────────────────────────────────────────────────────────────
 
+    /// <summary>Texte blanc — utilisé sur fond coloré (Accent, Danger, Success).</summary>
+    public static readonly Color CardTextWhite        = Color.White;
+
     /// <summary>Texte principal des champs de saisie.</summary>
     public static readonly Color FieldText            = Color.FromArgb( 30,  30,  30);
 

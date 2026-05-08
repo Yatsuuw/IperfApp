@@ -9,7 +9,7 @@ public partial class MainForm
     private void OpenSettings()
     {
         using var settings = new SettingsForm.SettingsForm(this, _config);
-        settings.ShowDialog();
+        settings.ShowDialog(this);
         RefreshPresetList();
     }
 
@@ -22,7 +22,7 @@ public partial class MainForm
     {
         if (_lastResult is null || _lastPreset is null)
         {
-            MessageBox.Show("Aucun résultat disponible. Lancez d'abord un test.",
+            MessageBox.Show(this, "Aucun résultat disponible. Lancez d'abord un test.",
                 "Aucun résultat", MessageBoxButtons.OK, MessageBoxIcon.Information);
             return;
         }
@@ -35,17 +35,17 @@ public partial class MainForm
                   FileName = $"Debit_Reseau_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.csv"
               };
 
-        if (fd.ShowDialog() != DialogResult.OK) return;
+        if (fd.ShowDialog(this) != DialogResult.OK) return;
 
         try
         {
             CsvExporter.Save(fd.FileName, _lastResult, _lastPreset, append);
-            MessageBox.Show(append ? "Résultat ajouté au fichier." : "Export réussi !",
+            MessageBox.Show(this, append ? "Résultat ajouté au fichier." : "Export réussi !",
                 "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erreur lors de l'export : {ex.Message}", "Erreur",
+            MessageBox.Show(this, $"Erreur lors de l'export : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
@@ -59,7 +59,7 @@ public partial class MainForm
             Title  = "Importer une configuration JSON"
         };
 
-        if (ofd.ShowDialog() != DialogResult.OK) return;
+        if (ofd.ShowDialog(this) != DialogResult.OK) return;
 
         string content;
         try
@@ -68,27 +68,27 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Impossible de lire le fichier :\n{ex.Message}",
+            MessageBox.Show(this, $"Impossible de lire le fichier :\n{ex.Message}",
                 "Échec de l'importation", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(content))
         {
-            MessageBox.Show("Le fichier sélectionné est vide.",
+            MessageBox.Show(this, "Le fichier sélectionné est vide.",
                 "Échec de l'importation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         if (!ConfigService.TryParse(content, out ConfigData? imported, out string err))
         {
-            MessageBox.Show($"Fichier JSON invalide :\n\n{err}",
+            MessageBox.Show(this, $"Fichier JSON invalide :\n\n{err}",
                 "Échec de l'importation", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
-        if (MessageBox.Show(
-                "Le fichier est valide. Remplacer la configuration actuelle ?",
+        if (MessageBox.Show(this,
+                "Le fichier est valide. Remplacer la configuration actuelle ?",
                 "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
             != DialogResult.Yes) return;
 
@@ -99,13 +99,13 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show(
-                $"Configuration chargée mais non sauvegardée sur le disque :\n{ex.Message}",
+            MessageBox.Show(this,
+                $"Configuration chargée mais non sauvegardée sur le disque :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         RefreshPresetList();
-        MessageBox.Show("Configuration importée et appliquée !",
+        MessageBox.Show(this, "Configuration importée et appliquée !",
             "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
@@ -118,17 +118,17 @@ public partial class MainForm
             FileName = "config_iperf_export.json"
         };
 
-        if (sfd.ShowDialog() != DialogResult.OK) return;
+        if (sfd.ShowDialog(this) != DialogResult.OK) return;
 
         try
         {
             JsonExporter.SaveToFile(sfd.FileName, _config);
-            MessageBox.Show("Exportation terminée !", "Succès",
+            MessageBox.Show(this, "Exportation terminée !", "Succès",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Erreur d'exportation : {ex.Message}", "Erreur",
+            MessageBox.Show(this, $"Erreur d'exportation : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }

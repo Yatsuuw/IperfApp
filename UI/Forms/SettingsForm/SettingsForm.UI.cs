@@ -10,7 +10,7 @@ public partial class SettingsForm
         Text            = " Profils";
         Icon            = parent.Icon;
         Size            = new Size(520, 535);
-        BackColor       = Color.White;
+        BackColor       = AppColors.Card;
         FormBorderStyle = FormBorderStyle.FixedDialog;
         StartPosition   = FormStartPosition.CenterParent;
         MaximizeBox     = false;
@@ -25,8 +25,8 @@ public partial class SettingsForm
         };
         var pnlBtns = new Panel { Dock = DockStyle.Top, Height = 40 };
 
-        ConfigureSideButton(btnAdd,    "＋", new Point(5,  5));
-        ConfigureSideButton(btnRemove, "－", new Point(38, 5));
+        ConfigureSideButton(btnAdd,    "\uff0b", new Point(5,  5));
+        ConfigureSideButton(btnRemove, "\uff0d", new Point(38, 5));
         btnAdd.Click    += (_, _) => CreateNew();
         btnRemove.Click += (_, _) => DeleteSelected();
         pnlBtns.Controls.AddRange([btnAdd, btnRemove]);
@@ -62,7 +62,7 @@ public partial class SettingsForm
         btnSave.Dock      = DockStyle.Bottom;
         btnSave.Height    = 40;
         btnSave.BackColor = AppColors.Accent;
-        btnSave.ForeColor = Color.White;
+        btnSave.ForeColor = AppColors.CardTextWhite;
         btnSave.FlatStyle = FlatStyle.Flat;
         btnSave.Cursor    = Cursors.Hand;
         btnSave.Font      = _fonts.Track(new Font("Segoe UI Bold", 9F));
@@ -80,7 +80,7 @@ public partial class SettingsForm
         b.FlatStyle = FlatStyle.Flat;
         b.FlatAppearance.BorderSize  = 1;
         b.FlatAppearance.BorderColor = AppColors.SideBtnBorder;
-        b.BackColor = Color.White;
+        b.BackColor = AppColors.Card;
         b.Cursor    = Cursors.Hand;
         b.Font      = _fonts.Track(new Font("Segoe UI", 9F, FontStyle.Bold));
     }
