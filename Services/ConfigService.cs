@@ -13,6 +13,11 @@ public static class ConfigService
     /// <summary>
     /// Valide et désérialise un JSON de configuration.
     /// Retourne <c>true</c> si valide, <c>false</c> avec un message d'erreur explicite sinon.
+    /// <para>
+    /// Une liste <c>Presets</c> vide est considérée valide : l'UI gère l'état
+    /// « aucun profil » via <c>RefreshPresetList()</c>. Seule l'absence totale
+    /// de la propriété (désérialisation nulle) est rejetée.
+    /// </para>
     /// </summary>
     public static bool TryParse(string json, out ConfigData? data, out string errorMessage)
     {
@@ -28,9 +33,11 @@ public static class ConfigService
                 return false;
             }
 
-            if (data.Presets is null || data.Presets.Count == 0)
+            // Presets null  = propriété absente du JSON → erreur structurelle.
+            // Presets vide  = config valide, l'UI affichera l'état « aucun profil ».
+            if (data.Presets is null)
             {
-                errorMessage = "La liste 'Presets' est absente ou vide.";
+                errorMessage = "La propriété 'Presets' est absente du JSON.";
                 return false;
             }
 
