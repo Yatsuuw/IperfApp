@@ -110,7 +110,7 @@ public partial class SettingsForm
 
         if (!int.TryParse(txtPort.Text, out int port) || port is < 1 or > 65535)
         {
-            MessageBox.Show(this, "Port invalide — doit être un entier entre 1 et 65 535.",
+            MessageBox.Show(this, "Port invalide — doit être un entier entre 1 et 65 535.",
                 "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
@@ -170,7 +170,7 @@ public partial class SettingsForm
         if (IsDisposed) return;
 
         // Désactiver le bouton pendant l'animation pour prévenir tout double-clic
-        // qui lancerait deux SaveDataAsync() simultanés pendant les 1 500 ms d'attente.
+        // qui lancerait deux SaveDataAsync() simultanés pendant les 1 500 ms d'attente.
         btnSave.Enabled   = false;
         var originalColor = btnSave.BackColor;
         var originalText  = btnSave.Text;
@@ -180,13 +180,15 @@ public partial class SettingsForm
         await Task.Delay(1500);
 
         // Second guard après l'attente asynchrone.
-        if (!IsDisposed)
-        {
-            btnSave.Text      = originalText;
-            btnSave.BackColor = originalColor;
-            btnSave.Enabled   = true;
-        }
+        if (IsDisposed) return;
 
+        // Ordre correct :
+        // 1. UpdateList d'abord — peut déclencher OnPresetSelectionChanged → LoadPresetIntoFields.
+        // 2. btnSave.Enabled = true ensuite — le bouton n'est réactif qu'une fois la liste stable.
         UpdateList(updated.Name);
+
+        btnSave.Text      = originalText;
+        btnSave.BackColor = originalColor;
+        btnSave.Enabled   = true;
     }
 }
