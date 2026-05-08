@@ -25,7 +25,7 @@ public sealed class IperfEngine : IDisposable
     public event Action<string>? OnLogReceived;
 
     /// <summary>
-    /// Durée maximale avant annulation automatique du test (défaut : 90 s).
+    /// Durée maximale avant annulation automatique du test (défaut : 90 s).
     /// Configurable après construction, par exemple depuis la fenêtre Settings.
     /// </summary>
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(90);
@@ -90,12 +90,18 @@ public sealed class IperfEngine : IDisposable
         }
         catch (Exception ex)
         {
-            OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
+            OnLogReceived?.Invoke($"[ERREUR] Impossible de lancer iperf3.exe : {ex.Message}");
             return 0;
         }
 
-        // Lecture stderr en arrière-plan — CancellationToken.None intentionnel :
-        // on vide le buffer même après annulation pour éviter un deadlock.
+        // Lecture stderr en arrière-plan.
+        // CancellationToken.None sur Task.Run : le task lui-même n'est pas annulable
+        // afin de garantir que le buffer stderr est toujours vidé jusqu'à la fin,
+        // même après annulation du test. Cela évite un deadlock sur WaitForExitAsync.
+        // En revanche, ReadLineAsync(ct) reçoit bien ct : si le test est annulé,
+        // la lecture s'arrête proprement via OperationCanceledException,
+        // et KillProcess() est appelé depuis le bloc catch de stdout ci-dessous,
+        // ce qui déclenche la fin du processus et libère le buffer stderr.
         var stderrTask = Task.Run(async () =>
         {
             try
@@ -107,16 +113,16 @@ public sealed class IperfEngine : IDisposable
             }
             catch (OperationCanceledException)
             {
-                Debug.WriteLine("[IperfEngine] Lecture stderr annulée (annulation du test).");
+                Debug.WriteLine("[IperfEngine] Lecture stderr annulée (test annulé, processus tué par KillProcess).");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
+                Debug.WriteLine($"[IperfEngine] Lecture stderr échouée : {ex.Message}");
             }
         }, CancellationToken.None);
 
         // Lecture stdout ligne par ligne.
-        // StringComparison.Ordinal : "receiver" est un mot ASCII fixe du protocole iperf3,
+        // StringComparison.Ordinal : "receiver" est un mot ASCII fixe du protocole iperf3,
         // la comparaison ordinale est la plus rapide et la plus correcte ici.
         try
         {
@@ -144,7 +150,7 @@ public sealed class IperfEngine : IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
+            Debug.WriteLine($"[IperfEngine] WaitForExitAsync exception inattendue : {ex.Message}");
         }
 
         return finalBitrate;
@@ -156,7 +162,7 @@ public sealed class IperfEngine : IDisposable
         try { proc.Kill(entireProcessTree: true); }
         catch (Exception ex)
         {
-            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
+            Debug.WriteLine($"[IperfEngine] Impossible de tuer iperf3 : {ex.Message}");
         }
     }
 

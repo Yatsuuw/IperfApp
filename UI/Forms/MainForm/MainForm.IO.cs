@@ -54,12 +54,12 @@ public partial class MainForm
         try
         {
             CsvExporter.Save(fd.FileName, _lastResult, _lastPreset, append);
-            MessageBox.Show(this, append ? "Résultat ajouté au fichier." : "Export réussi\u00a0!",
+            MessageBox.Show(this, append ? "Résultat ajouté au fichier." : "Export réussi !",
                 "Succès", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Erreur lors de l'export\u00a0: {ex.Message}", "Erreur",
+            MessageBox.Show(this, $"Erreur lors de l'export : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
@@ -70,8 +70,9 @@ public partial class MainForm
 
     /// <summary>
     /// Importe un fichier JSON de configuration après validation stricte.
-    /// La lecture du fichier est exécutée hors du thread UI via <see cref="Task.Run"/>
-    /// pour éviter tout gel de l'interface sur un disque lent ou réseau.
+    /// La lecture du fichier est exécutée hors du thread UI via <see cref="Task.Run"/>.
+    /// La sauvegarde est protégée par <see cref="_saveSemaphore"/> pour éviter
+    /// toute écriture concurrente avec un changement de profil simultané.
     /// </summary>
     private async Task ImportConfiguration()
     {
@@ -90,7 +91,7 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Impossible de lire le fichier :\n{ex.Message}",
+            MessageBox.Show(this, $"Impossible de lire le fichier :\n{ex.Message}",
                 "Échec de l'importation", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
@@ -104,13 +105,13 @@ public partial class MainForm
 
         if (!ConfigService.TryParse(content, out ConfigData? imported, out string err))
         {
-            MessageBox.Show(this, $"Fichier JSON invalide :\n\n{err}",
+            MessageBox.Show(this, $"Fichier JSON invalide :\n\n{err}",
                 "Échec de l'importation", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
         if (MessageBox.Show(this,
-                "La configuration actuelle sera remplacée. Continuer\u00a0?",
+                "La configuration actuelle sera remplacée. Continuer ?",
                 "Confirmer l'importation",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
 
@@ -118,12 +119,16 @@ public partial class MainForm
 
         try
         {
-            await Task.Run(() => ConfigService.Save(_config));
+            // _saveSemaphore : empêche la collision avec CbPresets_SelectedIndexChanged
+            // si l'utilisateur change de profil pendant l'import.
+            await _saveSemaphore.WaitAsync();
+            try   { await Task.Run(() => ConfigService.Save(_config)); }
+            finally { _saveSemaphore.Release(); }
         }
         catch (Exception ex)
         {
             MessageBox.Show(this,
-                $"Configuration importée en mémoire mais non persistante (erreur d'écriture) :\n{ex.Message}",
+                $"Configuration importée en mémoire mais non persistante (erreur d'écriture) :\n{ex.Message}",
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
@@ -134,7 +139,11 @@ public partial class MainForm
             "Import réussi", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    /// <summary>Exporte la configuration courante vers un fichier JSON.</summary>
+    /// <summary>
+    /// Exporte la configuration courante vers un fichier JSON.
+    /// La sauvegarde est protégée par <see cref="_saveSemaphore"/> pour éviter
+    /// toute écriture concurrente avec un changement de profil simultané.
+    /// </summary>
     private async Task ExportConfiguration()
     {
         using var sfd = new SaveFileDialog
@@ -152,7 +161,7 @@ public partial class MainForm
         if (File.Exists(path))
         {
             var confirm = MessageBox.Show(this,
-                $"Le fichier \u00ab\u202f{Path.GetFileName(path)}\u202f\u00bb existe déjà.\nVoulez-vous le remplacer\u00a0?",
+                $"Le fichier \u00ab\u202f{Path.GetFileName(path)}\u202f\u00bb existe déjà.\nVoulez-vous le remplacer ?",
                 "Confirmer le remplacement",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                 MessageBoxDefaultButton.Button2);
@@ -167,14 +176,19 @@ public partial class MainForm
                 SelectedPresetName = _config.SelectedPresetName,
                 Presets            = [.. _config.Presets]
             };
-            await Task.Run(() => JsonExporter.SaveToFile(path, copy));
 
-            MessageBox.Show(this, $"Configuration exportée :\n{path}",
+            // _saveSemaphore : empêche la collision avec CbPresets_SelectedIndexChanged
+            // ou ImportConfiguration si plusieurs opérations sont déclenchées en parallèle.
+            await _saveSemaphore.WaitAsync();
+            try   { await Task.Run(() => JsonExporter.SaveToFile(path, copy)); }
+            finally { _saveSemaphore.Release(); }
+
+            MessageBox.Show(this, $"Configuration exportée :\n{path}",
                 "Export réussi", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Impossible d'exporter la configuration :\n{ex.Message}",
+            MessageBox.Show(this, $"Impossible d'exporter la configuration :\n{ex.Message}",
                 "Erreur d'export", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }

@@ -26,6 +26,13 @@ public partial class MainForm
             return;
         }
 
+        // Note : si la validation échoue (return ci-dessus), SetTestRunningState(true)
+        // n'est jamais appelé. _testRunning reste false et le finally appelle
+        // SetTestRunningState(false) de façon inoffensive : btnStart est déjà actif,
+        // _testRunning déjà false. Pas de garde supplémentaire nécessaire.
+        // Le double-clic ne peut pas déclencher deux tests simultanés car btnStart
+        // est désactivé dès l'entrée dans SetTestRunningState(true).
+
         _testCts?.Dispose();
         _testCts = new CancellationTokenSource();
         var ct = _testCts.Token;
@@ -57,7 +64,7 @@ public partial class MainForm
         }
         catch (Exception ex)
         {
-            MessageBox.Show(this, $"Erreur inattendue : {ex.Message}", "Erreur",
+            MessageBox.Show(this, $"Erreur inattendue : {ex.Message}", "Erreur",
                 MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         finally
@@ -76,7 +83,7 @@ public partial class MainForm
     /// retournera un message d'erreur explicite affiché à l'utilisateur.
     /// </para>
     /// <para>
-    /// <b>Design choice — Durée :</b> la carte de configuration n'expose pas de champ
+    /// <b>Design choice — Durée :</b> la carte de configuration n'expose pas de champ
     /// <c>txtDuration</c> modifiable en temps réel. La durée est toujours lue depuis
     /// <c>selectedPreset.Duration</c> (valeur persistée dans le profil). Pour modifier
     /// la durée, l'utilisateur doit éditer le profil via la fenêtre Profils.
@@ -123,14 +130,6 @@ public partial class MainForm
         }
     }
 
-    /// <summary>Formate un débit en Mbps vers la bonne unité lisible (Kbps / Mbps / Gbps).</summary>
-    internal static string FormatMbps(double mbps) => mbps switch
-    {
-        >= 1000 => $"{mbps / 1000.0:F2} Gbps",
-        >= 1    => $"{mbps:F2} Mbps",
-        _       => $"{mbps * 1000.0:F1} Kbps"
-    };
-
     /// <summary>
     /// Affiche le récapitulatif des mesures dans la console de logs.
     /// Cadre Unicode à largeur dynamique, avec plancher à 26 caractères internes
@@ -146,8 +145,8 @@ public partial class MainForm
         // Plancher à 26 pour laisser 1 espace de respiration de chaque côté.
         const int    titleMinW = 26;
 
-        string up   = FormatMbps(r.Upload);
-        string down = FormatMbps(r.Download);
+        string up   = DisplayHelpers.FormatMbps(r.Upload);
+        string down = DisplayHelpers.FormatMbps(r.Download);
 
         int valueW = Math.Max(up.Length, down.Length);
         int innerW = Math.Max(labelW + valueW + 2, titleMinW);
