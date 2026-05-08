@@ -68,10 +68,17 @@ public partial class MainForm
         }
     }
 
-    /// <summary>Construit un <see cref="Preset"/> depuis les champs de l'UI.</summary>
+    /// <summary>
+    /// Construit un <see cref="Preset"/> depuis les champs de l'UI.
+    /// <para>
+    /// <b>Design choice — Durée :</b> la carte de configuration n'expose pas de champ
+    /// <c>txtDuration</c> modifiable en temps réel. La durée est toujours lue depuis
+    /// <c>selectedPreset.Duration</c> (valeur persistée dans le profil). Pour modifier
+    /// la durée, l'utilisateur doit éditer le profil via la fenêtre Profils.
+    /// </para>
+    /// </summary>
     private Preset BuildCurrentPreset()
     {
-        // Un seul pattern-match sur cbPresets.SelectedItem
         var selectedPreset = cbPresets.SelectedItem as Preset;
 
         _ = int.TryParse(txtPort.Text,     out int port);
@@ -88,9 +95,14 @@ public partial class MainForm
         };
     }
 
-    /// <summary>Active ou désactive les contrôles selon l'état du test.</summary>
+    /// <summary>
+    /// Active ou désactive les contrôles selon l'état du test.
+    /// Met à jour <see cref="_testRunning"/> comme source-of-truth.
+    /// </summary>
     private void SetTestRunningState(bool running)
     {
+        _testRunning = running;
+
         btnStart.Enabled   = !running;
         btnCancel.Enabled  =  running;
         btnStart.Text      = running ? "ANALYSE EN COURS..." : "LANCER L'ANALYSE";

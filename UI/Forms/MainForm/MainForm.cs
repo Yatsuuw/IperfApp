@@ -7,6 +7,13 @@ namespace IperfApp.UI.Forms.MainForm;
 /// <summary>Fenêtre principale de l'application Speedtest Iperf.</summary>
 public partial class MainForm : Form
 {
+    // --- État du test ---
+    /// <summary>
+    /// Source-of-truth de l'état « test en cours ».
+    /// Préférer ce champ à <c>btnCancel.Enabled</c> comme proxy d'état.
+    /// </summary>
+    private bool _testRunning;
+
     // --- Résultats du dernier test ---
     private TestResult? _lastResult;
     private Preset?     _lastPreset;
@@ -29,8 +36,8 @@ public partial class MainForm : Form
     private ComboBox cbIpVersion     = null!;
 
     // --- Ressources libérables ---
-    private readonly ToolTip    _mainToolTip = new();
-    private readonly FontTracker _fonts      = new();
+    private readonly ToolTip     _mainToolTip = new();
+    private readonly FontTracker _fonts       = new();
 
     public MainForm()
     {
@@ -60,8 +67,7 @@ public partial class MainForm : Form
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine(
-                $"[MainForm] Impossible de charger l'icône : {ex.Message}");
+            Debug.WriteLine($"[MainForm] Impossible de charger l'icône : {ex.Message}");
         }
     }
 

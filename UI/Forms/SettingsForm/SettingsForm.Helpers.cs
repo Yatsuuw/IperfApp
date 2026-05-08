@@ -48,16 +48,20 @@ public partial class SettingsForm
     // État verrouillé / déverrouillé des champs
     // ---------------------------------------------------------------
 
+    /// <summary>
+    /// Verrouille ou déverrouille tous les champs d'édition du profil sélectionné.
+    /// Tous les champs — y compris <see cref="txtDuration"/> — sont traités uniformément.
+    /// </summary>
     private void SetLockedState(bool locked)
     {
         txtName.ReadOnly = txtServer.ReadOnly =
-            txtPort.ReadOnly = txtChannels.ReadOnly = locked;
+            txtPort.ReadOnly = txtChannels.ReadOnly = txtDuration.ReadOnly = locked;
         cbIpVersion.Enabled = !locked;
 
         Color bg = locked ? Color.FromArgb(248, 248, 248) : Color.White;
         Color fg = locked ? Color.FromArgb(160, 160, 160) : Color.Black;
 
-        foreach (var field in (TextBox[])[txtName, txtServer, txtPort, txtChannels])
+        foreach (var field in (TextBox[])[txtName, txtServer, txtPort, txtChannels, txtDuration])
         {
             field.BackColor = bg;
             field.ForeColor = fg;
