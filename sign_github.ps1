@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
   [string] $CertPath = "signature.pfx",
-  [string] $CertPassword = '',
+  [string] $CertPassword = 'your_certificate_password',
   [string] $Version = "1.1.0"
 )
 
