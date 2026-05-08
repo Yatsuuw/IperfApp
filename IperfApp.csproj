@@ -7,6 +7,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
 
+    <!-- Tout warning devient une erreur de compilation : CS4014 (async non awaité),
+         CS8600/CS8602/CS8603 (nullable) et autres ne passeront plus au publish. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
     <ApplicationIcon>Resources\favicon.ico</ApplicationIcon>
 
     <Product>Speedtest Iperf</Product>
