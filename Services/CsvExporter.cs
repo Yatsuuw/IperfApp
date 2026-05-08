@@ -1,4 +1,3 @@
-using System.Globalization;
 using IperfApp.Models;
 
 namespace IperfApp.Services;
@@ -17,7 +16,7 @@ public static class CsvExporter
     /// <summary>
     /// Sauvegarde <paramref name="result"/> dans <paramref name="filePath"/>.
     /// Si <paramref name="append"/> est <c>true</c> et que le fichier existe,
-    /// le résultat est ajouté à la suite ; sinon un nouveau fichier est créé.
+    /// le résultat est ajouté à la suite ; sinon un nouveau fichier est créé.
     /// </summary>
     /// <exception cref="IOException">Propagée à l'appelant si l'écriture échoue.</exception>
     public static void Save(string filePath, TestResult result, Preset preset, bool append)
@@ -26,27 +25,26 @@ public static class CsvExporter
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
-        // Capturer le timestamp une seule fois pour garantir la cohérence
-        // entre l'en-tête et la ligne de données, même si l'horloge tourne
-        // entre les deux écritures.
-        DateTime exportTime = DateTime.Now;
-
         bool fileExists = File.Exists(filePath);
         bool needHeader = !append || !fileExists;
 
         using var sw = new StreamWriter(filePath, append: append, encoding: CsvEncoding);
 
         if (needHeader)
-            sw.WriteLine(BuildHeader(exportTime));
+            sw.WriteLine(BuildHeader());
 
         sw.WriteLine(string.Join(Separator,
-            exportTime.ToString("dd/MM/yyyy HH:mm:ss"),
-            result.Timestamp.ToString("dd/MM/yyyy HH:mm:ss"),
-            EscapeCsv(preset.Name),
+            result.Timestamp.ToString("dd/MM/yyyy"),
+            result.Timestamp.ToString("HH:mm:ss"),
             EscapeCsv(preset.Server),
-            preset.Port,
             preset.Channels,
-            preset.Duration,
+            preset.Port,
+            preset.IpVersion switch
+            {
+                IpVersion.IPv4 => "IPv4",
+                IpVersion.IPv6 => "IPv6",
+                _              => "Auto"
+            },
             result.Upload.ToString("F2", CultureInfo.InvariantCulture),
             result.Download.ToString("F2", CultureInfo.InvariantCulture)));
     }
@@ -55,18 +53,19 @@ public static class CsvExporter
     // Privé
     // ---------------------------------------------------------------
 
-    /// <summary>
-    /// Construit l'en-tête CSV avec le timestamp d'export capturé à l'entrée de <see cref="Save"/>.
-    /// </summary>
-    private static string BuildHeader(DateTime exportTime) =>
+    private static string BuildHeader() =>
         string.Join(Separator,
-            "Date export", "Horodatage mesure",
-            "Profil", "Serveur", "Port", "Canaux", "Durée (s)",
-            "Upload (Mbps)", "Download (Mbps)",
-            $"Export généré le : {exportTime:dd/MM/yyyy HH:mm:ss}");
+            "Date",
+            "Heure",
+            "Serveur",
+            "Canaux",
+            "Port",
+            "Protocole IP",
+            "Débit ascendant (Mbps)",
+            "Débit descendant (Mbps)");
 
     /// <summary>
-    /// Échappe une valeur CSV : si elle contient <c>;</c>, <c>"</c> ou un saut de ligne,
+    /// Échappe une valeur CSV : si elle contient <c>;</c>, <c>"</c> ou un saut de ligne,
     /// elle est entourée de guillemets doubles et les guillemets internes sont doublés.
     /// </summary>
     private static string EscapeCsv(string value)
