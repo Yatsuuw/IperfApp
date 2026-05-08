@@ -20,7 +20,7 @@ public partial class MainForm
             FlatStyle = FlatStyle.Flat,
             BackColor = AppColors.Card,
             Enabled   = false,
-            Font      = _fonts.Track(new Font("Segoe UI", 9F)),
+            Font      = _fonts.Track(new Font(AppFonts.Name, AppFonts.SizeBase)),
             Cursor    = Cursors.Hand
         };
         btn.FlatAppearance.BorderColor = AppColors.ExportBorderDisabled;
