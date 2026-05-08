@@ -13,11 +13,8 @@ public sealed class AboutDialog : Form
 
     public AboutDialog(Icon? ownerIcon)
     {
-        // ---------------------------------------------------------------
-        // Propriétés de la fenêtre
-        // ---------------------------------------------------------------
         Text            = "Informations";
-        Size            = new Size(420, 360);
+        Size            = new Size(460, 400);
         MinimumSize     = Size;
         MaximumSize     = Size;
         FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -33,10 +30,6 @@ public sealed class AboutDialog : Form
         BuildUI();
     }
 
-    // ---------------------------------------------------------------
-    // Construction de l'interface
-    // ---------------------------------------------------------------
-
     private void BuildUI()
     {
         // --- Logo ---------------------------------------------------
@@ -44,7 +37,7 @@ public sealed class AboutDialog : Form
         var picLogo = new PictureBox
         {
             Size     = new Size(72, 72),
-            Location = new Point((ClientSize.Width - 72) / 2, 28),
+            Location = new Point((ClientSize.Width - 72) / 2, 24),
             SizeMode = PictureBoxSizeMode.Zoom
         };
 
@@ -70,17 +63,24 @@ public sealed class AboutDialog : Form
             AutoSize  = false,
             Width     = ClientSize.Width,
             Height    = 32,
-            Top       = picLogo.Bottom + 14,
+            Top       = picLogo.Bottom + 12,
             Left      = 0,
             TextAlign = ContentAlignment.MiddleCenter
         };
 
         // --- Version ------------------------------------------------
-        string version = Application.ProductVersion ?? "1.0.0";
-        // Tronquer au format X.Y.Z (sans le 4e composant Build auto-généré par .NET)
-        var parts = version.Split('.');
-        if (parts.Length >= 3)
-            version = string.Join('.', parts[0], parts[1], parts[2]);
+        // Application.ProductVersion peut contenir un hash de commit
+        // ajouté par .NET au moment du publish (ex. "1.1.0+abc123").
+        // On tronque d'abord au premier '+', puis au format X.Y.Z.
+        string rawVersion = Application.ProductVersion ?? "1.0.0";
+        string cleanVersion = rawVersion.Contains('+')
+            ? rawVersion[..rawVersion.IndexOf('+')]
+            : rawVersion;
+
+        var vParts = cleanVersion.Split('.');
+        string version = vParts.Length >= 3
+            ? string.Join('.', vParts[0], vParts[1], vParts[2])
+            : cleanVersion;
 
         var lblVersion = new Label
         {
@@ -116,64 +116,72 @@ public sealed class AboutDialog : Form
             Left      = 40,
             Width     = ClientSize.Width - 80,
             Height    = 1,
-            Top       = lblAuthor.Bottom + 16
+            Top       = lblAuthor.Bottom + 14
         };
 
         // --- Description --------------------------------------------
         var lblDesc = new Label
         {
             Text = "Outil de mesure de débit réseau basé sur iperf3.\n" +
-                   "Permet de réaliser des tests de débit montant et\n" +
-                   "descendant avec gestion de profils, export CSV / JSON\n" +
+                   "Permet de réaliser des tests de débit montant et descendant\n" +
+                   "avec gestion de profils, export CSV / JSON\n" +
                    "et journalisation en temps réel.",
-            Font      = _fonts.Track(new Font("Segoe UI", 9F)),
+            Font      = _fonts.Track(new Font("Segoe UI", 9.5F)),
             ForeColor = AppColors.TextSecondary,
             AutoSize  = false,
-            Width     = ClientSize.Width - 60,
-            Height    = 72,
+            Width     = ClientSize.Width - 80,
+            Height    = 76,
             Top       = separator.Bottom + 14,
-            Left      = 30,
+            Left      = 40,
             TextAlign = ContentAlignment.TopLeft
+        };
+
+        // --- Copyright ---------------------------------------------
+        var lblCopyright = new Label
+        {
+            Text      = $"\u00a9 {DateTime.Now.Year} Lucas PIETERS — Tous droits réservés",
+            Font      = _fonts.Track(new Font("Segoe UI", 8F)),
+            ForeColor = AppColors.TextMuted,
+            AutoSize  = false,
+            Width     = ClientSize.Width,
+            Height    = 18,
+            Top       = lblDesc.Bottom + 6,
+            Left      = 0,
+            TextAlign = ContentAlignment.MiddleCenter
         };
 
         // --- Bouton Fermer -----------------------------------------
         var btnClose = new Button
         {
-            Text        = "Fermer",
-            Font        = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
-            Size        = new Size(110, 36),
-            ForeColor   = AppColors.CardTextWhite,
-            BackColor   = AppColors.Accent,
-            FlatStyle   = FlatStyle.Flat,
+            Text         = "Fermer",
+            Font         = _fonts.Track(new Font("Segoe UI Semibold", 9.5F)),
+            Size         = new Size(120, 36),
+            ForeColor    = AppColors.CardTextWhite,
+            BackColor    = AppColors.Accent,
+            FlatStyle    = FlatStyle.Flat,
             DialogResult = DialogResult.OK,
-            Cursor      = Cursors.Hand
+            Cursor       = Cursors.Hand
         };
         btnClose.FlatAppearance.BorderSize = 0;
         btnClose.Location = new Point(
             (ClientSize.Width - btnClose.Width) / 2,
-            lblDesc.Bottom + 16);
+            lblCopyright.Bottom + 12);
 
         btnClose.Click += (_, _) => Close();
 
-        // --- Assemblage --------------------------------------------
         Controls.AddRange([
             picLogo, lblProduct, lblVersion, lblAuthor,
-            separator, lblDesc, btnClose
+            separator, lblDesc, lblCopyright, btnClose
         ]);
 
         AcceptButton = btnClose;
     }
-
-    // ---------------------------------------------------------------
-    // Libération des ressources
-    // ---------------------------------------------------------------
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
             _fonts.Dispose();
-            // Libérer le bitmap du PictureBox s'il a été chargé
             foreach (Control c in Controls)
                 if (c is PictureBox pb)
                     pb.Image?.Dispose();
