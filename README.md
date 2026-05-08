@@ -37,19 +37,19 @@
 ```
 IperfApp/
 ├── Models/
-│   ├── ConfigData.cs          # Configuration persistante (liste de profils)
-│   ├── IpVersion.cs           # Enum IPv4 / IPv6 / Auto
-│   ├── Preset.cs              # Modèle d'un profil de test
-│   └── TestResult.cs          # Résultat d'un test (upload, download, horodatage)
+│   ├── ConfigData.cs             # Configuration persistante (liste de profils)
+│   ├── IpVersion.cs              # Enum IPv4 / IPv6 / Auto
+│   ├── Preset.cs                 # Modèle d'un profil de test
+│   └── TestResult.cs             # Résultat d'un test (upload, download, horodatage)
 ├── Services/
-│   ├── ConfigService.cs       # Chargement, sauvegarde et migration du config.json
-│   ├── CsvExporter.cs         # Export CSV des résultats
-│   ├── IntOrStringConverter.cs# JsonConverter tolérant string/number pour Port et Channels
-│   └── JsonExporter.cs        # Sérialisation JSON générique
+│   ├── ConfigService.cs          # Chargement, sauvegarde et migration du config.json
+│   ├── CsvExporter.cs            # Export CSV des résultats
+│   ├── IntOrStringConverter.cs   # JsonConverter
+│   └── JsonExporter.cs           # Sérialisation JSON générique
 ├── UI/
 │   ├── Constants/
 │   │   ├── AppColors.cs          # Palette de couleurs centralisée
-│   │   └── AppFonts.cs           # Noms et tailles de fontes centralisés
+│   │   └── AppFonts.cs           # Noms et tailles de fonts centralisés
 │   ├── Forms/
 │   │   ├── AboutForm/
 │   │   │   └── AboutDialog.cs
