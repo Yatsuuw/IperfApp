@@ -128,18 +128,33 @@ public partial class MainForm
             TextAlign = ContentAlignment.MiddleRight
         };
 
-        // Wrapper qui dessine la bordure autour du ComboBox
+        // Créer le ComboBox en premier pour lire sa hauteur réelle.
+        // WinForms impose une hauteur automatique basée sur la fonte ;
+        // dimensionner le wrapper AVANT reviendrait à un cadre trop grand.
+        combo = new ComboBox
+        {
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            FlatStyle     = FlatStyle.Flat,
+            Font          = _fonts.Track(new Font("Segoe UI", 10F)),
+            Width         = RowInputW,
+            Left          = borderW,
+            Top           = borderW
+        };
+
+        // Hauteur réelle du ComboBox (imposée par WinForms selon la fonte).
+        int comboH = combo.Height;
+
+        // Wrapper calibré exactement sur le ComboBox + la bordure 1px tout autour.
+        Color borderColor = AppColors.FieldBorder;
         var wrapper = new Panel
         {
             Left      = RowPaddingL + RowLabelW + RowGap,
-            Top       = top,
+            Top       = top + (rowH - comboH) / 2,
             Width     = RowInputW + borderW * 2,
-            Height    = rowH + borderW * 2,
-            BackColor = AppColors.Card,
-            Padding   = new Padding(borderW)
+            Height    = comboH    + borderW * 2,
+            BackColor = AppColors.Card
         };
 
-        Color borderColor = AppColors.FieldBorder;
         wrapper.Paint += (_, e) =>
         {
             using var pen = new System.Drawing.Pen(borderColor, borderW);
@@ -147,15 +162,6 @@ public partial class MainForm
                 0, 0,
                 wrapper.Width  - borderW,
                 wrapper.Height - borderW);
-        };
-
-        combo = new ComboBox
-        {
-            Dock          = DockStyle.Fill,
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            FlatStyle     = FlatStyle.Flat,
-            Font          = _fonts.Track(new Font("Segoe UI", 10F)),
-            Margin        = new Padding(0)
         };
 
         combo.Enter += (_, _) => { borderColor = AppColors.FieldBorderFocus; wrapper.Invalidate(); };
