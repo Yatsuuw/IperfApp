@@ -133,19 +133,24 @@ public partial class MainForm
 
     /// <summary>
     /// Affiche le récapitulatif des mesures dans la console de logs.
-    /// Cadre ASCII à largeur dynamique : robuste à toutes les magnitudes de débit.
+    /// Cadre Unicode à largeur dynamique, avec plancher à 26 caractères internes
+    /// pour garantir que le titre "RÉSULTATS DE LA MESURE" (24 car.) ne déborde
+    /// jamais et éviter toute <see cref="ArgumentOutOfRangeException"/>.
     /// </summary>
     private void DisplayResults(TestResult r)
     {
         const string labelUp   = "  Upload   : ";
         const string labelDown = "  Download : ";
         const int    labelW    = 13;
+        // Titre = 22 caractères + 2 espaces de marge = 24 caractères minimum.
+        // Plancher à 26 pour laisser 1 espace de respiration de chaque côté.
+        const int    titleMinW = 26;
 
         string up   = FormatMbps(r.Upload);
         string down = FormatMbps(r.Download);
 
         int valueW = Math.Max(up.Length, down.Length);
-        int innerW = labelW + valueW + 2;
+        int innerW = Math.Max(labelW + valueW + 2, titleMinW);
         string sep = new string('\u2500', innerW);
 
         var sb = new StringBuilder();

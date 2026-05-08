@@ -77,7 +77,8 @@ public partial class SettingsForm
 
         _data.Presets.Remove(p);
 
-        // Si le profil supprimé était le sélectionné, basculer sur le premier disponible
+        // Si le profil supprimé était le profil sélectionné dans la MainForm,
+        // basculer sur le premier profil restant.
         if (_data.SelectedPresetName == p.Name)
             _data.SelectedPresetName = _data.Presets.FirstOrDefault()?.Name ?? string.Empty;
 
@@ -92,7 +93,8 @@ public partial class SettingsForm
                 "Avertissement", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
-        UpdateList();
+        // Sélectionner le premier profil restant pour éviter un panneau vide.
+        UpdateList(_data.Presets.FirstOrDefault()?.Name ?? string.Empty);
     }
 
     // ---------------------------------------------------------------
@@ -149,7 +151,7 @@ public partial class SettingsForm
         if (index >= 0)
             _data.Presets[index] = updated;
 
-        // Synchroniser SelectedPresetName si le nom a changé
+        // Synchroniser SelectedPresetName si le nom a changé.
         if (_data.SelectedPresetName == current.Name)
             _data.SelectedPresetName = updated.Name;
 
@@ -167,10 +169,14 @@ public partial class SettingsForm
         // Guard AVANT Task.Delay : inutile de continuer si la fenêtre est déjà fermée.
         if (IsDisposed) return;
 
+        // Désactiver le bouton pendant l'animation pour prévenir tout double-clic
+        // qui lancerait deux SaveDataAsync() simultanés pendant les 1 500 ms d'attente.
+        btnSave.Enabled   = false;
         var originalColor = btnSave.BackColor;
         var originalText  = btnSave.Text;
         btnSave.Text      = "✓ Enregistré";
         btnSave.BackColor = IperfApp.UI.Constants.AppColors.Success;
+
         await Task.Delay(1500);
 
         // Second guard après l'attente asynchrone.
@@ -178,6 +184,7 @@ public partial class SettingsForm
         {
             btnSave.Text      = originalText;
             btnSave.BackColor = originalColor;
+            btnSave.Enabled   = true;
         }
 
         UpdateList(updated.Name);

@@ -128,9 +128,9 @@ public partial class MainForm
             TextAlign = ContentAlignment.MiddleRight
         };
 
-        // Créer le ComboBox en premier pour lire sa hauteur réelle.
-        // WinForms impose une hauteur automatique basée sur la fonte ;
-        // dimensionner le wrapper AVANT reviendrait à un cadre trop grand.
+        // Créer le ComboBox en premier pour lire sa hauteur réelle imposée par WinForms.
+        // Dimensionner le wrapper AVANT reviendrait à un cadre trop grand ou trop petit
+        // selon le DPI et la fonte.
         combo = new ComboBox
         {
             DropDownStyle = ComboBoxStyle.DropDownList,
@@ -138,13 +138,16 @@ public partial class MainForm
             Font          = _fonts.Track(new Font("Segoe UI", 10F)),
             Width         = RowInputW,
             Left          = borderW,
-            Top           = borderW
+            Top           = borderW,
+            // Neutralise la marge WinForms par défaut (3 px) qui décalerait
+            // le rendu du ComboBox à l'intérieur du wrapper selon le DPI.
+            Margin        = Padding.Empty
         };
 
         // Hauteur réelle du ComboBox (imposée par WinForms selon la fonte).
         int comboH = combo.Height;
 
-        // Wrapper calibré exactement sur le ComboBox + la bordure 1px tout autour.
+        // Wrapper calibré exactement sur le ComboBox + bordure 1 px tout autour.
         Color borderColor = AppColors.FieldBorder;
         var wrapper = new Panel
         {
