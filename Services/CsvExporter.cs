@@ -14,17 +14,6 @@ public static class CsvExporter
         new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
     /// <summary>
-    /// En-tête CSV — calculée à chaque appel pour inclure le bon timestamp d'export.
-    /// Une propriété statique évite l'allocation répétée de la chaîne.
-    /// </summary>
-    private static string Header =>
-        string.Join(Separator,
-            "Date export", "Horodatage mesure",
-            "Profil", "Serveur", "Port", "Canaux", "Durée (s)",
-            $"Upload (Mbps)", "Download (Mbps)",
-            $"Export généré le : {DateTime.Now:dd/MM/yyyy HH:mm:ss}");
-
-    /// <summary>
     /// Sauvegarde <paramref name="result"/> dans <paramref name="filePath"/>.
     /// Si <paramref name="append"/> est <c>true</c> et que le fichier existe,
     /// le résultat est ajouté à la suite ; sinon un nouveau fichier est créé.
@@ -36,16 +25,21 @@ public static class CsvExporter
         ArgumentNullException.ThrowIfNull(preset);
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
 
+        // Capturer le timestamp une seule fois pour garantir la cohérence
+        // entre l'en-tête et la ligne de données, même si l'horloge tourne
+        // entre les deux écritures.
+        DateTime exportTime = DateTime.Now;
+
         bool fileExists = File.Exists(filePath);
         bool needHeader = !append || !fileExists;
 
         using var sw = new StreamWriter(filePath, append: append, encoding: CsvEncoding);
 
         if (needHeader)
-            sw.WriteLine(Header);
+            sw.WriteLine(BuildHeader(exportTime));
 
         sw.WriteLine(string.Join(Separator,
-            DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+            exportTime.ToString("dd/MM/yyyy HH:mm:ss"),
             result.Timestamp.ToString("dd/MM/yyyy HH:mm:ss"),
             EscapeCsv(preset.Name),
             EscapeCsv(preset.Server),
@@ -56,6 +50,22 @@ public static class CsvExporter
             result.Download.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)));
     }
 
+    // ---------------------------------------------------------------
+    // Privé
+    // ---------------------------------------------------------------
+
+    /// <summary>
+    /// Construit l'en-tête CSV avec le timestamp d'export capturé à l'entrée de <see cref="Save"/>.
+    /// Méthode statique plutôt que propriété pour rendre explicite que le timestamp
+    /// est une valeur injectée, non un side-effect de l'heure courante.
+    /// </summary>
+    private static string BuildHeader(DateTime exportTime) =>
+        string.Join(Separator,
+            "Date export", "Horodatage mesure",
+            "Profil", "Serveur", "Port", "Canaux", "Durée (s)",
+            "Upload (Mbps)", "Download (Mbps)",
+            $"Export généré le : {exportTime:dd/MM/yyyy HH:mm:ss}");
+
     /// <summary>
     /// Échappe une valeur CSV : si elle contient <c>;</c>, <c>"</c> ou un saut de ligne,
     /// elle est entourée de guillemets doubles et les guillemets internes sont doublés.
@@ -63,7 +73,7 @@ public static class CsvExporter
     private static string EscapeCsv(string value)
     {
         if (value.Contains(';') || value.Contains('"') || value.Contains('\n'))
-            return $"\"{value.Replace("\"", "\"\"")}\""; 
+            return $"\"{value.Replace("\"", "\"\"")}\"";
         return value;
     }
 }
